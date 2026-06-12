@@ -26,6 +26,7 @@ public class ReviewService {
     private final GameMapper gameMapper;
     private final UserLibraryMapper userLibraryMapper;
     private final RateLimitService rateLimitService;
+    private final PointService pointService;
     
     /**
      * 获取游戏评论列表
@@ -74,6 +75,15 @@ public class ReviewService {
         
         // 更新游戏评分
         updateGameRating(gameId);
+
+        // 评论送积分：每次有效评论获得20积分
+        pointService.addPoints(
+                userId,
+                20,
+                "REVIEW",
+                String.valueOf(review.getId()),
+                "发表评论获得20积分"
+        );
         
         log.info("用户 {} 对游戏 {} 发表评论", userId, gameId);
         return review;

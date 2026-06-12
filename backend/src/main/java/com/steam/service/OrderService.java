@@ -27,6 +27,7 @@ public class OrderService {
     private final CartMapper cartMapper;
     private final UserLibraryMapper userLibraryMapper;
     private final WishlistMapper wishlistMapper;
+    private final PointService pointService;
     
     /**
      * 创建订单
@@ -171,6 +172,18 @@ public class OrderService {
         order.setStatus("PAID");
         order.setPayTime(now);
         order.setOrderItems(orderItems);
+
+        // 消费送积分：每消费1元获得1积分
+        int pointsEarned = recalculatedAmount.setScale(0, java.math.RoundingMode.DOWN).intValue();
+        if (pointsEarned > 0) {
+            pointService.addPoints(
+                    userId,
+                    pointsEarned,
+                    "ORDER_PAY",
+                    orderNo,
+                    "订单消费获得" + pointsEarned + "积分"
+            );
+        }
         
         log.info("订单支付成功: {}, 用户: {}", orderNo, userId);
         return order;

@@ -380,3 +380,91 @@ INSERT INTO `flash_sales` (`game_id`, `flash_price`, `stock_count`, `sold_count`
 (6, 88.00, 200, 200, DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), 1, 1),
 -- 已售罄的秒杀（仍在进行中但库存已空）
 (10, 69.00, 10, 10, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 2 DAY), 1, 1);
+
+-- ===================== 积分体系表 =====================
+
+-- 用户积分账户表
+CREATE TABLE IF NOT EXISTS `points` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL UNIQUE COMMENT '用户ID',
+    `balance` INT DEFAULT 0 COMMENT '当前积分余额',
+    `total_earned` INT DEFAULT 0 COMMENT '累计获得积分',
+    `total_spent` INT DEFAULT 0 COMMENT '累计消耗积分',
+    `consecutive_days` INT DEFAULT 0 COMMENT '连续签到天数',
+    `last_sign_date` DATE COMMENT '最后签到日期',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    INDEX `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户积分账户表';
+
+-- 积分流水记录表
+CREATE TABLE IF NOT EXISTS `point_logs` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `type` ENUM('EARN', 'SPEND') NOT NULL COMMENT '类型: EARN获得 SPEND消耗',
+    `amount` INT NOT NULL COMMENT '积分数量',
+    `balance_after` INT NOT NULL COMMENT '变动后余额',
+    `source` VARCHAR(50) NOT NULL COMMENT '来源/用途: SIGN_IN消费 REVIEW评论 EXCHANGE兑换等',
+    `source_id` VARCHAR(100) COMMENT '关联ID(如订单号、商品ID)',
+    `description` VARCHAR(200) COMMENT '描述',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_type` (`type`),
+    INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='积分流水记录表';
+
+-- 积分商品表
+CREATE TABLE IF NOT EXISTS `point_products` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(100) NOT NULL COMMENT '商品名称',
+    `description` VARCHAR(500) COMMENT '商品描述',
+    `image` VARCHAR(500) COMMENT '商品图片',
+    `points_required` INT NOT NULL COMMENT '所需积分',
+    `stock` INT DEFAULT 0 COMMENT '库存数量',
+    `sold_count` INT DEFAULT 0 COMMENT '已兑换数量',
+    `type` ENUM('COUPON', 'VIRTUAL') DEFAULT 'VIRTUAL' COMMENT '类型: COUPON优惠券 VIRTUAL虚拟物品',
+    `value` DECIMAL(10,2) COMMENT '面值(优惠券时使用)',
+    `status` TINYINT DEFAULT 1 COMMENT '状态: 0下架 1上架',
+    `sort_order` INT DEFAULT 0 COMMENT '排序',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_status` (`status`),
+    INDEX `idx_sort_order` (`sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='积分商品表';
+
+-- 兑换记录表
+CREATE TABLE IF NOT EXISTS `exchange_records` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `product_id` BIGINT NOT NULL COMMENT '商品ID',
+    `product_name` VARCHAR(100) NOT NULL COMMENT '商品名称(冗余)',
+    `product_image` VARCHAR(500) COMMENT '商品图片(冗余)',
+    `points_spent` INT NOT NULL COMMENT '消耗积分',
+    `status` ENUM('PENDING', 'COMPLETED', 'FAILED') DEFAULT 'COMPLETED' COMMENT '状态',
+    `redeem_code` VARCHAR(100) COMMENT '兑换码(优惠券时使用)',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`product_id`) REFERENCES `point_products`(`id`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_product_id` (`product_id`),
+    INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='兑换记录表';
+
+-- 初始化积分商品数据
+INSERT INTO `point_products` (`name`, `description`, `image`, `points_required`, `stock`, `type`, `value`, `sort_order`) VALUES
+('10元优惠券', '全场通用优惠券，满100可用', '/game-assets/cyberpunk-2077/cover.jpg', 100, 999, 'COUPON', 10.00, 1),
+('20元优惠券', '全场通用优惠券，满200可用', '/game-assets/elden-ring/cover.jpg', 180, 500, 'COUPON', 20.00, 2),
+('50元优惠券', '全场通用优惠券，满500可用', '/game-assets/hogwarts-legacy/cover.jpg', 400, 200, 'COUPON', 50.00, 3),
+('100元优惠券', '全场通用优惠券，满1000可用', '/game-assets/baldurs-gate-3/cover.jpg', 750, 100, 'COUPON', 100.00, 4),
+('稀有头像框', '限定稀有头像框，彰显尊贵身份', '/game-assets/sekiro-shadows-die-twice/cover.jpg', 500, 999, 'VIRTUAL', NULL, 5),
+('游戏主题皮肤', '独家定制游戏主题UI皮肤', '/game-assets/civilization-6/cover.jpg', 800, 500, 'VIRTUAL', NULL, 6),
+('VIP会员7天', '享受专属VIP特权7天', '/game-assets/stardew-valley/cover.jpg', 300, 999, 'VIRTUAL', NULL, 7),
+('限定徽章', '积分达人专属纪念徽章', '/game-assets/black-myth-wukong/cover.jpg', 1000, 100, 'VIRTUAL', NULL, 8);
+
+-- 初始化用户积分账户
+INSERT INTO `points` (`user_id`, `balance`, `total_earned`, `consecutive_days`) VALUES
+(1, 500, 500, 3),
+(2, 200, 200, 1),
+(3, 0, 0, 0);

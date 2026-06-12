@@ -172,3 +172,81 @@ export interface FlashSalePurchaseStatus {
   purchasedCount: number
   isLoggedIn: boolean
 }
+
+// 积分账户
+export interface UserPoints {
+  id: number
+  userId: number
+  balance: number
+  totalEarned: number
+  totalSpent: number
+  consecutiveDays: number
+  lastSignDate: string
+  createdAt: string
+  updatedAt: string
+}
+
+// 积分流水
+export interface PointLog {
+  id: number
+  userId: number
+  type: 'EARN' | 'SPEND'
+  amount: number
+  balanceAfter: number
+  source: string
+  sourceId: string
+  description: string
+  createdAt: string
+}
+
+// 积分商品
+export interface PointProduct {
+  id: number
+  name: string
+  description: string
+  image: string
+  pointsRequired: number
+  stock: number
+  soldCount: number
+  type: 'COUPON' | 'VIRTUAL'
+  value: number
+  status: number
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+// 兑换记录
+export interface ExchangeRecord {
+  id: number
+  userId: number
+  productId: number
+  productName: string
+  productImage: string
+  pointsSpent: number
+  status: 'PENDING' | 'COMPLETED' | 'FAILED'
+  redeemCode: string
+  createdAt: string
+  product?: PointProduct
+}
+
+// 签到结果
+export interface SignInResult {
+  signedToday: boolean
+  consecutiveDays: number
+  pointsEarned: number
+  bonusPoints: number
+  totalPoints: number
+  message: string
+}
+
+// 兑换结果
+export interface ExchangeResult {
+  recordId: number
+  productName: string
+  productImage: string
+  pointsSpent: number
+  remainingPoints: number
+  redeemCode: string
+  message: string
+}

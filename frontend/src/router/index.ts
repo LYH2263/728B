@@ -3,6 +3,7 @@ import { useUserStore } from '@/store/user'
 import gameRoutes from './modules/game'
 import userRoutes from './modules/user'
 import orderRoutes from './modules/order'
+import pointRoutes from './modules/point'
 
 const baseRoutes: RouteRecordRaw[] = [
   {
@@ -24,6 +25,7 @@ const routes: RouteRecordRaw[] = [
   ...gameRoutes,
   ...userRoutes,
   ...orderRoutes,
+  ...pointRoutes,
   ...baseRoutes.filter(r => r.path !== '/')
 ]
 

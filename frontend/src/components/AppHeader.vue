@@ -15,6 +15,10 @@
           <el-icon style="margin-right: 4px;"><Lightning /></el-icon>
           秒杀
         </router-link>
+        <router-link v-if="isLoggedIn" to="/points-mall" class="nav-item nav-item-points">
+          <el-icon style="margin-right: 4px;"><GoldMedal /></el-icon>
+          积分商城
+        </router-link>
         <router-link v-if="isLoggedIn" to="/library" class="nav-item">游戏库</router-link>
       </nav>
       
@@ -118,6 +122,10 @@
           限时秒杀
         </router-link>
         <template v-if="isLoggedIn">
+          <router-link to="/points-mall" class="mobile-nav-item" @click="showMobileMenu = false">
+            <el-icon><GoldMedal /></el-icon>
+            积分商城
+          </router-link>
           <router-link to="/library" class="mobile-nav-item" @click="showMobileMenu = false">
             <el-icon><Collection /></el-icon>
             游戏库
@@ -163,7 +171,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { useCartStore } from '@/store/cart'
-import { Search, Lightning } from '@element-plus/icons-vue'
+import { Search, Lightning, GoldMedal } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()

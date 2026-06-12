@@ -142,3 +142,16 @@ export const flashSaleApi = {
   getPurchaseStatus: (flashSaleId: number) => api.get(`/flash-sales/${flashSaleId}/purchase-status`),
   createFlashSaleOrder: (flashSaleId: number) => api.post('/flash-sales/order', { flashSaleId })
 }
+
+// 积分相关
+export const pointApi = {
+  getPointInfo: () => api.get('/points/info'),
+  signIn: () => api.post('/points/sign-in'),
+  getSignInStatus: () => api.get('/points/sign-in/status'),
+  getProducts: () => api.get('/points/products'),
+  exchangeProduct: (productId: number) => api.post(`/points/exchange/${productId}`),
+  getPointLogs: (page: number = 1, size: number = 20) =>
+    api.get('/points/logs', { params: { page, size } }),
+  getExchangeRecords: (page: number = 1, size: number = 10) =>
+    api.get('/points/exchange-records', { params: { page, size } })
+}
