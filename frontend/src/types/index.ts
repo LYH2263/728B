@@ -146,3 +146,29 @@ export interface GameQueryParams {
   onSale?: boolean
   featured?: boolean
 }
+
+// 秒杀活动状态
+export type FlashSaleStatus = 'NOT_STARTED' | 'ONGOING' | 'SOLD_OUT' | 'ENDED'
+
+// 秒杀活动
+export interface FlashSale {
+  id: number
+  gameId: number
+  flashPrice: number
+  stockCount: number
+  soldCount: number
+  startTime: string
+  endTime: string
+  perUserLimit: number
+  status: number
+  createdAt?: string
+  updatedAt?: string
+  game: Game
+  activityStatus: FlashSaleStatus
+}
+
+// 秒杀下单响应
+export interface FlashSalePurchaseStatus {
+  purchasedCount: number
+  isLoggedIn: boolean
+}

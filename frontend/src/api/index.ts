@@ -135,3 +135,10 @@ export const reviewApi = {
     api.post('/reviews', data),
   markHelpful: (reviewId: number) => api.post(`/reviews/${reviewId}/helpful`)
 }
+
+// 秒杀相关
+export const flashSaleApi = {
+  getFlashSales: () => api.get('/flash-sales'),
+  getPurchaseStatus: (flashSaleId: number) => api.get(`/flash-sales/${flashSaleId}/purchase-status`),
+  createFlashSaleOrder: (flashSaleId: number) => api.post('/flash-sales/order', { flashSaleId })
+}

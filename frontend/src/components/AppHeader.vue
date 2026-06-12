@@ -11,6 +11,10 @@
       <nav class="nav-menu">
         <router-link to="/" class="nav-item">首页</router-link>
         <router-link to="/store" class="nav-item">商店</router-link>
+        <router-link to="/flash-sale" class="nav-item nav-item-flash">
+          <el-icon style="margin-right: 4px;"><Lightning /></el-icon>
+          秒杀
+        </router-link>
         <router-link v-if="isLoggedIn" to="/library" class="nav-item">游戏库</router-link>
       </nav>
       
@@ -109,6 +113,10 @@
           <el-icon><Shop /></el-icon>
           商店
         </router-link>
+        <router-link to="/flash-sale" class="mobile-nav-item" @click="showMobileMenu = false">
+          <el-icon><Lightning /></el-icon>
+          限时秒杀
+        </router-link>
         <template v-if="isLoggedIn">
           <router-link to="/library" class="mobile-nav-item" @click="showMobileMenu = false">
             <el-icon><Collection /></el-icon>
@@ -155,7 +163,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { useCartStore } from '@/store/cart'
-import { Search } from '@element-plus/icons-vue'
+import { Search, Lightning } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()

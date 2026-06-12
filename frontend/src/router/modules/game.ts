@@ -8,6 +8,12 @@ const gameRoutes: RouteRecordRaw[] = [
     meta: { title: '商店' }
   },
   {
+    path: '/flash-sale',
+    name: 'FlashSale',
+    component: () => import('@/views/FlashSale.vue'),
+    meta: { title: '限时秒杀' }
+  },
+  {
     path: '/game/:id',
     name: 'GameDetail',
     component: () => import('@/views/GameDetail.vue'),

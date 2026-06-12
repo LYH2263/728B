@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.steam.mapper.FlashSaleMapper">
+
+    <resultMap id="FlashSaleWithGameMap" type="com.steam.entity.FlashSale">
+        <id property="id" column="fs_id"/>
+        <result property="gameId" column="fs_game_id"/>
+        <result property="flashPrice" column="fs_flash_price"/>
+        <result property="stockCount" column="fs_stock_count"/>
+        <result property="soldCount" column="fs_sold_count"/>
+        <result property="startTime" column="fs_start_time"/>
+        <result property="endTime" column="fs_end_time"/>
+        <result property="perUserLimit" column="fs_per_user_limit"/>
+        <result property="status" column="fs_status"/>
+        <result property="createdAt" column="fs_created_at"/>
+        <result property="updatedAt" column="fs_updated_at"/>
+        <association property="game" javaType="com.steam.entity.Game">
+            <id property="id" column="g_id"/>
+            <result property="title" column="g_title"/>
+            <result property="description" column="g_description"/>
+            <result property="coverImage" column="g_cover_image"/>
+            <result property="originalPrice" column="g_original_price"/>
+            <result property="discountPrice" column="g_discount_price"/>
+            <result property="discountPercent" column="g_discount_percent"/>
+            <result property="tags" column="g_tags"/>
+            <result property="status" column="g_status"/>
+        </association>
+    </resultMap>
+
+    <select id="findAllWithGames" resultMap="FlashSaleWithGameMap">
+        SELECT
+            fs.id AS fs_id,
+            fs.game_id AS fs_game_id,
+            fs.flash_price AS fs_flash_price,
+            fs.stock_count AS fs_stock_count,
+            fs.sold_count AS fs_sold_count,
+            fs.start_time AS fs_start_time,
+            fs.end_time AS fs_end_time,
+            fs.per_user_limit AS fs_per_user_limit,
+            fs.status AS fs_status,
+            fs.created_at AS fs_created_at,
+            fs.updated_at AS fs_updated_at,
+            g.id AS g_id,
+            g.title AS g_title,
+            g.description AS g_description,
+            g.cover_image AS g_cover_image,
+            g.original_price AS g_original_price,
+            g.discount_price AS g_discount_price,
+            g.discount_percent AS g_discount_percent,
+            g.tags AS g_tags,
+            g.status AS g_status
+        FROM flash_sales fs
+        LEFT JOIN games g ON fs.game_id = g.id
+        WHERE fs.status = 1
+        ORDER BY fs.start_time ASC
+    </select>
+
+</mapper>

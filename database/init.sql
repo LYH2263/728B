@@ -329,3 +329,54 @@ INSERT INTO `order_items` (`order_id`, `game_id`, `game_title`, `game_cover`, `p
 INSERT INTO `user_library` (`user_id`, `game_id`, `order_id`, `play_time`, `last_played_at`) VALUES
 (2, 1, 1, 1250, '2024-01-28 22:15:00'),
 (2, 5, 2, 3680, '2024-01-29 23:45:00');
+
+-- 秒杀活动表
+CREATE TABLE IF NOT EXISTS `flash_sales` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `game_id` BIGINT NOT NULL COMMENT '游戏ID',
+    `flash_price` DECIMAL(10,2) NOT NULL COMMENT '秒杀价',
+    `stock_count` INT NOT NULL COMMENT '秒杀活动库存数量',
+    `sold_count` INT DEFAULT 0 COMMENT '已售出数量',
+    `start_time` DATETIME NOT NULL COMMENT '开始时间',
+    `end_time` DATETIME NOT NULL COMMENT '结束时间',
+    `per_user_limit` INT DEFAULT 1 COMMENT '每人限购数量',
+    `status` TINYINT DEFAULT 1 COMMENT '状态: 0禁用 1启用',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON DELETE CASCADE,
+    INDEX `idx_game_id` (`game_id`),
+    INDEX `idx_start_end` (`start_time`, `end_time`),
+    INDEX `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='秒杀活动表';
+
+-- 秒杀订单记录表（用于校验每人限购）
+CREATE TABLE IF NOT EXISTS `flash_sale_orders` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `flash_sale_id` BIGINT NOT NULL COMMENT '秒杀活动ID',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `game_id` BIGINT NOT NULL COMMENT '游戏ID',
+    `order_id` BIGINT COMMENT '关联普通订单ID',
+    `quantity` INT DEFAULT 1 COMMENT '购买数量',
+    `price` DECIMAL(10,2) NOT NULL COMMENT '秒杀成交价格',
+    `status` ENUM('PENDING', 'PAID', 'CANCELLED') DEFAULT 'PENDING' COMMENT '状态',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`flash_sale_id`) REFERENCES `flash_sales`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON DELETE CASCADE,
+    INDEX `idx_flash_user` (`flash_sale_id`, `user_id`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='秒杀订单记录表';
+
+-- 初始化秒杀活动数据
+-- 注：开始/结束时间使用相对于当前日期的动态值，实际运行时请根据需要调整
+INSERT INTO `flash_sales` (`game_id`, `flash_price`, `stock_count`, `sold_count`, `start_time`, `end_time`, `per_user_limit`, `status`) VALUES
+-- 进行中的秒杀：开始时间设为当前日期前1天，结束时间设为当前日期后2天
+(1, 99.00, 100, 35, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 2 DAY), 1, 1),
+-- 即将开始的秒杀：开始时间设为当前日期后1小时
+(2, 168.00, 50, 0, DATE_ADD(NOW(), INTERVAL 1 HOUR), DATE_ADD(NOW(), INTERVAL 3 DAY), 1, 1),
+-- 已结束的秒杀：开始/结束时间都在过去
+(6, 88.00, 200, 200, DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), 1, 1),
+-- 已售罄的秒杀（仍在进行中但库存已空）
+(10, 69.00, 10, 10, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 2 DAY), 1, 1);
