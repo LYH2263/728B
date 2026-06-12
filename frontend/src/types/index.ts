@@ -250,3 +250,52 @@ export interface ExchangeResult {
   redeemCode: string
   message: string
 }
+
+// 充值套餐
+export interface RechargePlan {
+  id: number
+  name: string
+  amount: number
+  bonusAmount: number
+  description: string
+  icon?: string
+  tag?: string
+  tagColor?: string
+  sortOrder: number
+  status: number
+  createdAt: string
+  updatedAt: string
+}
+
+// 充值订单
+export interface RechargeOrder {
+  id: number
+  orderNo: string
+  userId: number
+  planId: number
+  planName: string
+  amount: number
+  bonusAmount: number
+  totalAmount: number
+  payMethod: string
+  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'TIMEOUT'
+  payTime?: string
+  expireTime: string
+  transactionId?: string
+  remark?: string
+  createdAt: string
+  updatedAt: string
+}
+
+// 余额流水
+export interface BalanceLog {
+  id: number
+  userId: number
+  type: 'RECHARGE' | 'CONSUME' | 'REFUND'
+  amount: number
+  balanceAfter: number
+  source: string
+  sourceId: string
+  description: string
+  createdAt: string
+}

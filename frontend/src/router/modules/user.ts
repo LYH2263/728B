@@ -20,6 +20,12 @@ const userRoutes: RouteRecordRaw[] = [
     meta: { title: '个人中心', requiresAuth: true }
   },
   {
+    path: '/recharge',
+    name: 'Recharge',
+    component: () => import('@/views/Recharge.vue'),
+    meta: { title: '充值中心', requiresAuth: true }
+  },
+  {
     path: '/library',
     name: 'Library',
     component: () => import('@/views/Library.vue'),

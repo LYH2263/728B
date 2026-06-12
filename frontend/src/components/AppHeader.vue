@@ -63,6 +63,13 @@
                   <el-icon><User /></el-icon>
                   个人中心
                 </el-dropdown-item>
+                <el-dropdown-item command="recharge">
+                  <el-icon><Wallet /></el-icon>
+                  充值中心
+                  <span style="margin-left: 8px; color: #f59e0b; font-weight: 600;">
+                    ¥{{ userInfo?.balance?.toFixed(2) || '0.00' }}
+                  </span>
+                </el-dropdown-item>
                 <el-dropdown-item command="orders">
                   <el-icon><Document /></el-icon>
                   我的订单
@@ -126,6 +133,10 @@
             <el-icon><GoldMedal /></el-icon>
             积分商城
           </router-link>
+          <router-link to="/recharge" class="mobile-nav-item" @click="showMobileMenu = false">
+            <el-icon><Wallet /></el-icon>
+            充值中心
+          </router-link>
           <router-link to="/library" class="mobile-nav-item" @click="showMobileMenu = false">
             <el-icon><Collection /></el-icon>
             游戏库
@@ -171,7 +182,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { useCartStore } from '@/store/cart'
-import { Search, Lightning, GoldMedal } from '@element-plus/icons-vue'
+import { Search, Lightning, GoldMedal, Wallet } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
@@ -206,6 +217,9 @@ function handleCommand(command: string) {
   switch (command) {
     case 'profile':
       router.push('/profile')
+      break
+    case 'recharge':
+      router.push('/recharge')
       break
     case 'orders':
       router.push('/orders')

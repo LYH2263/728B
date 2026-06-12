@@ -156,3 +156,17 @@ export const pointApi = {
   getExchangeRecords: (page: number = 1, size: number = 10) =>
     api.get('/points/exchange-records', { params: { page, size } })
 }
+
+// 充值相关
+export const rechargeApi = {
+  getPlans: () => api.get('/recharge/plans'),
+  createOrder: (planId: number, payMethod?: string) =>
+    api.post('/recharge/order', { planId, payMethod }),
+  mockPay: (orderNo: string) => api.post(`/recharge/order/${orderNo}/pay`),
+  getOrder: (orderNo: string) => api.get(`/recharge/order/${orderNo}`),
+  getOrders: (page: number = 1, size: number = 10) =>
+    api.get('/recharge/orders', { params: { page, size } }),
+  cancelOrder: (orderNo: string) => api.post(`/recharge/order/${orderNo}/cancel`),
+  getBalanceLogs: (page: number = 1, size: number = 20) =>
+    api.get('/recharge/balance-logs', { params: { page, size } })
+}

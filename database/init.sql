@@ -468,3 +468,77 @@ INSERT INTO `points` (`user_id`, `balance`, `total_earned`, `consecutive_days`) 
 (1, 500, 500, 3),
 (2, 200, 200, 1),
 (3, 0, 0, 0);
+
+-- ===================== 充值模块表 =====================
+
+-- 充值套餐表
+CREATE TABLE IF NOT EXISTS `recharge_plans` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(100) NOT NULL COMMENT '套餐名称',
+    `amount` DECIMAL(10,2) NOT NULL COMMENT '充值金额',
+    `bonus_amount` DECIMAL(10,2) DEFAULT 0.00 COMMENT '赠送金额',
+    `description` VARCHAR(200) COMMENT '套餐描述',
+    `icon` VARCHAR(200) COMMENT '套餐图标',
+    `tag` VARCHAR(50) COMMENT '标签(如 首充特惠、限时优惠)',
+    `tag_color` VARCHAR(20) COMMENT '标签颜色',
+    `sort_order` INT DEFAULT 0 COMMENT '排序',
+    `status` TINYINT DEFAULT 1 COMMENT '状态: 0下架 1上架',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_status` (`status`),
+    INDEX `idx_sort_order` (`sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='充值套餐表';
+
+-- 充值订单表
+CREATE TABLE IF NOT EXISTS `recharge_orders` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `order_no` VARCHAR(50) NOT NULL UNIQUE COMMENT '订单号',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `plan_id` BIGINT COMMENT '套餐ID',
+    `plan_name` VARCHAR(100) COMMENT '套餐名称(冗余)',
+    `amount` DECIMAL(10,2) NOT NULL COMMENT '充值金额',
+    `bonus_amount` DECIMAL(10,2) DEFAULT 0.00 COMMENT '赠送金额',
+    `total_amount` DECIMAL(10,2) NOT NULL COMMENT '实际到账金额',
+    `pay_method` VARCHAR(20) DEFAULT 'WECHAT' COMMENT '支付方式: WECHAT支付宝 ALIPAY微信',
+    `status` ENUM('PENDING', 'PAID', 'CANCELLED', 'TIMEOUT') DEFAULT 'PENDING' COMMENT '订单状态: PENDING待支付 PAID已支付 CANCELLED已取消 TIMEOUT已超时',
+    `pay_time` DATETIME COMMENT '支付时间',
+    `expire_time` DATETIME COMMENT '过期时间',
+    `transaction_id` VARCHAR(100) COMMENT '第三方交易号',
+    `remark` VARCHAR(200) COMMENT '备注',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),
+    FOREIGN KEY (`plan_id`) REFERENCES `recharge_plans`(`id`),
+    INDEX `idx_order_no` (`order_no`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_status` (`status`),
+    INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='充值订单表';
+
+-- 余额流水表
+CREATE TABLE IF NOT EXISTS `balance_logs` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `type` ENUM('RECHARGE', 'CONSUME', 'REFUND') NOT NULL COMMENT '类型: RECHARGE充值 CONSUME消费 REFUND退款',
+    `amount` DECIMAL(10,2) NOT NULL COMMENT '变动金额(正数增加,负数减少)',
+    `balance_after` DECIMAL(10,2) NOT NULL COMMENT '变动后余额',
+    `source` VARCHAR(50) NOT NULL COMMENT '来源: RECHARGE充值 ORDER消费 CANCEL退款等',
+    `source_id` VARCHAR(100) COMMENT '关联ID(如订单号、充值单号)',
+    `description` VARCHAR(200) COMMENT '描述',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_type` (`type`),
+    INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='余额流水表';
+
+-- 初始化充值套餐数据
+INSERT INTO `recharge_plans` (`name`, `amount`, `bonus_amount`, `description`, `tag`, `tag_color`, `sort_order`) VALUES
+('新手礼包', 10.00, 2.00, '首次充值专享，立得12元', '首充特惠', '#ef4444', 1),
+('10元套餐', 10.00, 0.00, '充值10元，立即到账', NULL, NULL, 2),
+('30元套餐', 30.00, 2.00, '充值30元，赠送2元', '热门推荐', '#f59e0b', 3),
+('50元套餐', 50.00, 5.00, '充值50元，赠送5元', NULL, NULL, 4),
+('100元套餐', 100.00, 12.00, '充值100元，赠送12元', '超值', '#10b981', 5),
+('200元套餐', 200.00, 30.00, '充值200元，赠送30元', NULL, NULL, 6),
+('500元套餐', 500.00, 88.00, '充值500元，赠送88元', 'VIP专享', '#8b5cf6', 7),
+('1000元套餐', 1000.00, 200.00, '充值1000元，赠送200元', '钻石会员', '#ec4899', 8);
