@@ -68,6 +68,50 @@
           </div>
         </div>
         
+        <!-- 价格走势 -->
+        <div class="price-chart-section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <el-icon><TrendCharts /></el-icon>
+              价格走势
+            </h2>
+            <div class="chart-tabs">
+              <el-radio-group v-model="chartDays" size="small" @change="fetchPriceChart">
+                <el-radio-button :label="7">7天</el-radio-button>
+                <el-radio-button :label="30">30天</el-radio-button>
+                <el-radio-button :label="90">90天</el-radio-button>
+              </el-radio-group>
+            </div>
+          </div>
+          
+          <div class="chart-container" v-loading="chartLoading">
+            <div ref="chartRef" class="chart"></div>
+            
+            <div class="price-stats" v-if="priceChartData">
+              <div class="stat-item">
+                <span class="stat-label">当前价格</span>
+                <span class="stat-value current">¥{{ priceChartData.currentPrice.toFixed(2) }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">历史最低</span>
+                <span class="stat-value lowest">¥{{ priceChartData.lowestPrice.toFixed(2) }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">历史最高</span>
+                <span class="stat-value highest">¥{{ priceChartData.highestPrice.toFixed(2) }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">平均价格</span>
+                <span class="stat-value average">¥{{ priceChartData.averagePrice.toFixed(2) }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">原价</span>
+                <span class="stat-value original">¥{{ priceChartData.originalPrice.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- 评论区 -->
         <div class="reviews-section">
           <h2 class="section-title">玩家评测</h2>
@@ -184,14 +228,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { gameApi, reviewApi, wishlistApi, libraryApi } from '@/api'
+import { gameApi, reviewApi, wishlistApi, libraryApi, priceHistoryApi } from '@/api'
 import { useUserStore } from '@/store/user'
 import { useCartStore } from '@/store/cart'
-import type { Game, GameReview } from '@/types'
+import type { Game, GameReview, PriceChartDTO } from '@/types'
 import { ElMessage } from 'element-plus'
 import RichText from '@/components/RichText.vue'
+import { TrendCharts } from '@element-plus/icons-vue'
+import * as echarts from 'echarts'
 
 const route = useRoute()
 const router = useRouter()
@@ -203,6 +249,12 @@ const game = ref<Game | null>(null)
 const reviews = ref<GameReview[]>([])
 const ownsGame = ref(false)
 const inWishlist = ref(false)
+
+const chartRef = ref<HTMLElement | null>(null)
+let chartInstance: echarts.ECharts | null = null
+const chartLoading = ref(false)
+const chartDays = ref(30)
+const priceChartData = ref<PriceChartDTO | null>(null)
 
 const gameId = computed(() => Number(route.params.id))
 const isFree = computed(() => game.value?.originalPrice === 0)
@@ -264,10 +316,136 @@ onMounted(async () => {
   await Promise.all([
     fetchReviews(),
     checkOwnership(),
-    checkWishlist()
+    checkWishlist(),
+    fetchPriceChart()
   ])
   loading.value = false
 })
+
+onUnmounted(() => {
+  if (chartInstance) {
+    chartInstance.dispose()
+    chartInstance = null
+  }
+})
+
+async function fetchPriceChart() {
+  chartLoading.value = true
+  try {
+    const res = await priceHistoryApi.getPriceChart(gameId.value, chartDays.value)
+    priceChartData.value = res.data.data
+    await nextTick()
+    initChart()
+  } catch (error) {
+    console.error('Failed to fetch price chart')
+  } finally {
+    chartLoading.value = false
+  }
+}
+
+function initChart() {
+  if (!chartRef.value || !priceChartData.value) return
+  
+  if (chartInstance) {
+    chartInstance.dispose()
+  }
+  
+  chartInstance = echarts.init(chartRef.value)
+  
+  const data = priceChartData.value
+  const xAxisData = data.pricePoints.map(p => p.dateLabel)
+  const yAxisData = data.pricePoints.map(p => p.price)
+  
+  const option: echarts.EChartsOption = {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(30, 45, 60, 0.95)',
+      borderColor: '#66c0f4',
+      textStyle: {
+        color: '#fff'
+      },
+      formatter: (params: any) => {
+        const param = params[0]
+        return `<div style="padding: 8px;">
+          <div style="margin-bottom: 4px;">${param.name}</div>
+          <div style="color: #66c0f4; font-weight: 600;">¥${param.value.toFixed(2)}</div>
+        </div>`
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      top: '10%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: xAxisData,
+      axisLine: {
+        lineStyle: {
+          color: '#3a4a5a'
+        }
+      },
+      axisLabel: {
+        color: '#8f98a0',
+        fontSize: 11
+      },
+      axisTick: {
+        show: false
+      }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: {
+        show: false
+      },
+      axisLabel: {
+        color: '#8f98a0',
+        fontSize: 11,
+        formatter: (value: number) => '¥' + value
+      },
+      splitLine: {
+        lineStyle: {
+          color: 'rgba(58, 74, 90, 0.5)',
+          type: 'dashed'
+        }
+      }
+    },
+    series: [
+      {
+        name: '价格',
+        type: 'line',
+        data: yAxisData,
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 6,
+        lineStyle: {
+          color: '#66c0f4',
+          width: 3
+        },
+        itemStyle: {
+          color: '#66c0f4',
+          borderWidth: 2,
+          borderColor: '#fff'
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(102, 192, 244, 0.3)' },
+            { offset: 1, color: 'rgba(102, 192, 244, 0.05)' }
+          ])
+        }
+      }
+    ]
+  }
+  
+  chartInstance.setOption(option)
+  
+  window.addEventListener('resize', () => {
+    chartInstance?.resize()
+  })
+}
 
 async function fetchGame() {
   try {
@@ -463,6 +641,83 @@ function formatDate(date: string) {
       
       strong {
         color: var(--text-primary);
+      }
+    }
+  }
+}
+
+// 价格走势图
+.price-chart-section {
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+  }
+  
+  .chart-container {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .chart {
+    width: 100%;
+    height: 300px;
+  }
+  
+  .price-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      
+      .stat-label {
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+      
+      .stat-value {
+        font-size: 18px;
+        font-weight: 600;
+        
+        &.current {
+          color: var(--steam-light-blue);
+        }
+        
+        &.lowest {
+          color: var(--steam-green);
+        }
+        
+        &.highest {
+          color: #ef4444;
+        }
+        
+        &.average {
+          color: #f59e0b;
+        }
+        
+        &.original {
+          color: var(--text-secondary);
+          text-decoration: line-through;
+        }
       }
     }
   }

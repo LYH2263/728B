@@ -54,4 +54,9 @@ public interface GameMapper {
     
     @Update("UPDATE games SET rating = #{rating}, rating_count = #{ratingCount} WHERE id = #{id}")
     int updateRating(@Param("id") Long id, @Param("rating") java.math.BigDecimal rating, @Param("ratingCount") Integer ratingCount);
+    
+    @Update("UPDATE games SET discount_price = #{discountPrice}, discount_percent = #{discountPercent} WHERE id = #{id}")
+    int updateDiscountPrice(@Param("id") Long id, 
+                            @Param("discountPrice") java.math.BigDecimal discountPrice, 
+                            @Param("discountPercent") Integer discountPercent);
 }

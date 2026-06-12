@@ -3,12 +3,15 @@ package com.steam.service;
 import com.steam.entity.Game;
 import com.steam.entity.Wishlist;
 import com.steam.mapper.GameMapper;
+import com.steam.mapper.PriceHistoryMapper;
 import com.steam.mapper.WishlistMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 /**
@@ -21,12 +24,43 @@ public class WishlistService {
     
     private final WishlistMapper wishlistMapper;
     private final GameMapper gameMapper;
+    private final PriceHistoryMapper priceHistoryMapper;
     
     /**
      * 获取用户愿望单
      */
     public List<Wishlist> getWishlist(Long userId) {
         return wishlistMapper.findByUserId(userId);
+    }
+    
+    /**
+     * 获取用户愿望单（包含价格变动信息）
+     */
+    public List<Wishlist> getWishlistWithPriceInfo(Long userId) {
+        List<Wishlist> items = wishlistMapper.findByUserIdWithPriceInfo(userId);
+        
+        for (Wishlist item : items) {
+            Game game = item.getGame();
+            if (game == null) continue;
+            
+            BigDecimal currentPrice = item.getCurrentPrice();
+            BigDecimal addedPrice = item.getAddedPrice();
+            
+            if (addedPrice != null && currentPrice != null) {
+                BigDecimal priceDrop = addedPrice.subtract(currentPrice);
+                if (priceDrop.compareTo(BigDecimal.ZERO) > 0) {
+                    item.setPriceDrop(priceDrop);
+                    int dropPercent = priceDrop.divide(addedPrice, 2, RoundingMode.HALF_UP)
+                            .multiply(new BigDecimal("100")).intValue();
+                    item.setPriceDropPercent(dropPercent);
+                }
+            }
+            
+            BigDecimal lowestPrice = priceHistoryMapper.findAllTimeLowestPrice(game.getId());
+            item.setLowestPrice(lowestPrice);
+        }
+        
+        return items;
     }
     
     /**
@@ -45,12 +79,17 @@ public class WishlistService {
             throw new RuntimeException("游戏已在愿望单中");
         }
         
+        BigDecimal addedPrice = game.getDiscountPrice() != null ? 
+                game.getDiscountPrice() : game.getOriginalPrice();
+        
         Wishlist wishlist = new Wishlist();
         wishlist.setUserId(userId);
         wishlist.setGameId(gameId);
+        wishlist.setAddedPrice(addedPrice);
+        wishlist.setAddedOriginalPrice(game.getOriginalPrice());
         
         wishlistMapper.insert(wishlist);
-        log.info("用户 {} 添加游戏 {} 到愿望单", userId, gameId);
+        log.info("用户 {} 添加游戏 {} 到愿望单，价格: {}", userId, gameId, addedPrice);
     }
     
     /**

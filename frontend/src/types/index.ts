@@ -80,8 +80,63 @@ export interface WishlistItem {
   id: number
   userId: number
   gameId: number
+  addedPrice?: number
+  addedOriginalPrice?: number
   createdAt: string
   game: Game
+  priceDrop?: number
+  priceDropPercent?: number
+  lowestPrice?: number
+  currentPrice?: number
+}
+
+// 价格历史
+export interface PriceHistory {
+  id: number
+  gameId: number
+  originalPrice: number
+  discountPrice?: number
+  newDiscountPrice?: number
+  discountPercent: number
+  priceChange?: number
+  changePercent?: number
+  createdAt: string
+  game?: Game
+}
+
+// 价格图表数据点
+export interface PricePoint {
+  date: string
+  price: number
+  dateLabel: string
+}
+
+// 价格图表DTO
+export interface PriceChartDTO {
+  pricePoints: PricePoint[]
+  currentPrice: number
+  originalPrice: number
+  lowestPrice: number
+  highestPrice: number
+  averagePrice: number
+}
+
+// 通知
+export interface Notification {
+  id: number
+  userId: number
+  type: string
+  gameId?: number
+  title: string
+  content?: string
+  priceDrop?: number
+  priceDropPercent?: number
+  oldPrice?: number
+  newPrice?: number
+  isRead: number
+  readAt?: string
+  createdAt: string
+  game?: Game
 }
 
 // 订单

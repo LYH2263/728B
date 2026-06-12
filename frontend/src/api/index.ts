@@ -170,3 +170,23 @@ export const rechargeApi = {
   getBalanceLogs: (page: number = 1, size: number = 20) =>
     api.get('/recharge/balance-logs', { params: { page, size } })
 }
+
+// 价格历史相关
+export const priceHistoryApi = {
+  getPriceHistory: (gameId: number) => api.get(`/price-history/game/${gameId}`),
+  getPriceChart: (gameId: number, days: number = 30) =>
+    api.get(`/price-history/game/${gameId}/chart`, { params: { days } }),
+  getLowestPrice: (gameId: number) => api.get(`/price-history/game/${gameId}/lowest`),
+  recordPriceChange: (gameId: number, oldDiscountPrice?: number, newDiscountPrice?: number) =>
+    api.post('/price-history/record', null, { params: { gameId, oldDiscountPrice, newDiscountPrice } })
+}
+
+// 通知相关
+export const notificationApi = {
+  getNotifications: (limit?: number) => api.get('/notifications', { params: { limit } }),
+  getUnreadNotifications: () => api.get('/notifications/unread'),
+  getUnreadCount: () => api.get('/notifications/count'),
+  markAsRead: (id: number) => api.put(`/notifications/${id}/read`),
+  markAllAsRead: () => api.put('/notifications/read-all'),
+  deleteNotification: (id: number) => api.delete(`/notifications/${id}`)
+}

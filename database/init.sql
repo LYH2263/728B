@@ -542,3 +542,48 @@ INSERT INTO `recharge_plans` (`name`, `amount`, `bonus_amount`, `description`, `
 ('200元套餐', 200.00, 30.00, '充值200元，赠送30元', NULL, NULL, 6),
 ('500元套餐', 500.00, 88.00, '充值500元，赠送88元', 'VIP专享', '#8b5cf6', 7),
 ('1000元套餐', 1000.00, 200.00, '充值1000元，赠送200元', '钻石会员', '#ec4899', 8);
+
+-- ===================== 价格监控模块表 =====================
+
+-- 价格历史表
+CREATE TABLE IF NOT EXISTS `price_history` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `game_id` BIGINT NOT NULL COMMENT '游戏ID',
+    `original_price` DECIMAL(10,2) NOT NULL COMMENT '原价',
+    `discount_price` DECIMAL(10,2) COMMENT '折扣价(变动前)',
+    `new_discount_price` DECIMAL(10,2) COMMENT '新折扣价(变动后)',
+    `discount_percent` INT DEFAULT 0 COMMENT '折扣百分比',
+    `price_change` DECIMAL(10,2) COMMENT '价格变动金额(正数表示降价，负数表示涨价)',
+    `change_percent` DECIMAL(5,2) COMMENT '价格变动百分比',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON DELETE CASCADE,
+    INDEX `idx_game_id` (`game_id`),
+    INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='游戏价格历史表';
+
+-- 站内通知表
+CREATE TABLE IF NOT EXISTS `notifications` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `type` VARCHAR(30) NOT NULL COMMENT '通知类型: PRICE_DROP降价通知',
+    `game_id` BIGINT COMMENT '关联游戏ID',
+    `title` VARCHAR(200) NOT NULL COMMENT '通知标题',
+    `content` TEXT COMMENT '通知内容',
+    `price_drop` DECIMAL(10,2) COMMENT '降价金额',
+    `price_drop_percent` INT COMMENT '降价百分比',
+    `old_price` DECIMAL(10,2) COMMENT '原价(加入愿望单时)',
+    `new_price` DECIMAL(10,2) COMMENT '新价(当前折扣价)',
+    `is_read` TINYINT DEFAULT 0 COMMENT '是否已读: 0未读 1已读',
+    `read_at` DATETIME COMMENT '已读时间',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON DELETE CASCADE,
+    UNIQUE KEY `uk_user_game_type` (`user_id`, `game_id`, `type`, `created_at`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_user_read` (`user_id`, `is_read`),
+    INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='站内通知表';
+
+-- 添加愿望单表字段：记录加入时的价格
+ALTER TABLE `wishlist` ADD COLUMN `added_price` DECIMAL(10,2) COMMENT '加入愿望单时的价格(折扣价或原价)' AFTER `game_id`;
+ALTER TABLE `wishlist` ADD COLUMN `added_original_price` DECIMAL(10,2) COMMENT '加入愿望单时的原价' AFTER `added_price`;

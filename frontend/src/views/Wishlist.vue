@@ -14,7 +14,13 @@
         <div v-for="item in items" :key="item.id" class="wishlist-item">
           <img :src="item.game.coverImage" :alt="item.game.title" @click="goToGame(item.gameId)" />
           <div class="item-info">
-            <h3 @click="goToGame(item.gameId)">{{ item.game.title }}</h3>
+            <h3 @click="goToGame(item.gameId)">
+              {{ item.game.title }}
+              <span v-if="item.priceDropPercent" class="price-drop-badge">
+                <el-icon><TrendCharts /></el-icon>
+                较加入时 ↓{{ item.priceDropPercent }}%
+              </span>
+            </h3>
             <div class="price">
               <template v-if="item.game.discountPercent">
                 <span class="discount-tag">-{{ item.game.discountPercent }}%</span>
@@ -27,6 +33,14 @@
               <template v-else>
                 <span class="current">¥{{ item.game.originalPrice }}</span>
               </template>
+              <span v-if="item.lowestPrice" class="lowest-price">
+                <el-icon><Bottom /></el-icon>
+                历史最低 ¥{{ item.lowestPrice.toFixed(2) }}
+              </span>
+            </div>
+            <div v-if="item.priceDrop" class="price-drop-info">
+              加入时价格: ¥{{ item.addedPrice?.toFixed(2) }}，
+              已降价 <span class="drop-amount">¥{{ item.priceDrop.toFixed(2) }}</span>
             </div>
           </div>
           <div class="item-actions">
@@ -58,6 +72,7 @@ import { wishlistApi } from '@/api'
 import { useCartStore } from '@/store/cart'
 import type { WishlistItem } from '@/types'
 import { ElMessage } from 'element-plus'
+import { TrendCharts, Bottom } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -190,6 +205,55 @@ async function handleRemove(gameId: number) {
   .item-actions {
     display: flex;
     gap: 8px;
+  }
+}
+
+.price-drop-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--steam-green);
+  color: var(--steam-darker);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+.lowest-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.price-drop-info {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  
+  .drop-amount {
+    color: var(--steam-green);
+    font-weight: 600;
+  }
+}
+
+.item-info {
+  h3 {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 }
 

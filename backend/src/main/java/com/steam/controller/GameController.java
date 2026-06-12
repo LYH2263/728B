@@ -112,4 +112,16 @@ public class GameController {
         List<Game> games = gameService.getGamesByIds(idList);
         return Result.success(games);
     }
+    
+    @PutMapping("/{id}/discount")
+    public Result<Void> updateDiscountPrice(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+        BigDecimal newDiscountPrice = body.get("discountPrice") != null ?
+                new BigDecimal(body.get("discountPrice").toString()) : null;
+        Integer newDiscountPercent = body.get("discountPercent") != null ?
+                Integer.parseInt(body.get("discountPercent").toString()) : 0;
+        gameService.updateDiscountPrice(id, newDiscountPrice, newDiscountPercent);
+        return Result.successMessage("价格更新成功");
+    }
 }

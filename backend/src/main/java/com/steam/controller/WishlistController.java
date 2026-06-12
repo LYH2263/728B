@@ -26,7 +26,7 @@ public class WishlistController {
     @GetMapping
     public Result<List<Wishlist>> getWishlist(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
-        List<Wishlist> items = wishlistService.getWishlist(userId);
+        List<Wishlist> items = wishlistService.getWishlistWithPriceInfo(userId);
         return Result.success(items);
     }
     

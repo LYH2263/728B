@@ -9,6 +9,7 @@ import com.steam.mapper.GameMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,6 +24,7 @@ public class GameService {
     
     private final GameMapper gameMapper;
     private final CategoryMapper categoryMapper;
+    private final PriceHistoryService priceHistoryService;
     
     /**
      * 获取游戏详情
@@ -67,7 +69,6 @@ public class GameService {
      * 条件查询游戏
      */
     public PageResult<Game> searchGames(GameQueryDTO query) {
-        // 解析价格范围
         BigDecimal minPrice = null;
         BigDecimal maxPrice = null;
         if (query.getPriceRange() != null) {
@@ -139,5 +140,25 @@ public class GameService {
             return List.of();
         }
         return gameMapper.findByIds(ids);
+    }
+    
+    /**
+     * 更新游戏折扣价格
+     */
+    @Transactional
+    public void updateDiscountPrice(Long gameId, BigDecimal newDiscountPrice, Integer newDiscountPercent) {
+        Game game = getGameById(gameId);
+        BigDecimal oldDiscountPrice = game.getDiscountPrice();
+        
+        if ((oldDiscountPrice == null && newDiscountPrice == null) ||
+            (oldDiscountPrice != null && oldDiscountPrice.compareTo(newDiscountPrice) == 0)) {
+            log.info("游戏 {} 折扣价格未变化，跳过", gameId);
+            return;
+        }
+        
+        gameMapper.updateDiscountPrice(gameId, newDiscountPrice, newDiscountPercent);
+        log.info("更新游戏 {} 折扣价格: {} -> {}", gameId, oldDiscountPrice, newDiscountPrice);
+        
+        priceHistoryService.recordPriceChange(gameId, oldDiscountPrice, newDiscountPrice);
     }
 }
