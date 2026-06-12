@@ -9,12 +9,14 @@
       </router-view>
     </main>
     <AppFooter />
+    <CompareBar />
   </div>
 </template>
 
 <script setup lang="ts">
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
+import CompareBar from '@/components/CompareBar.vue'
 </script>
 
 <style lang="scss">

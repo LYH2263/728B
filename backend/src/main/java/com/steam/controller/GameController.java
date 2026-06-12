@@ -98,4 +98,18 @@ public class GameController {
         List<Category> categories = gameService.getGameCategories(id);
         return Result.success(categories);
     }
+
+    @GetMapping("/batch")
+    public Result<List<Game>> getGamesByIds(@RequestParam String ids) {
+        List<Long> idList = List.of(ids.split(",")).stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Long::parseLong)
+                .toList();
+        if (idList.isEmpty()) {
+            return Result.success(List.of());
+        }
+        List<Game> games = gameService.getGamesByIds(idList);
+        return Result.success(games);
+    }
 }

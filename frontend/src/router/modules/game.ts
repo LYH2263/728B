@@ -8,6 +8,12 @@ const gameRoutes: RouteRecordRaw[] = [
     meta: { title: '商店' }
   },
   {
+    path: '/compare',
+    name: 'Compare',
+    component: () => import('@/views/Compare.vue'),
+    meta: { title: '游戏对比' }
+  },
+  {
     path: '/flash-sale',
     name: 'FlashSale',
     component: () => import('@/views/FlashSale.vue'),

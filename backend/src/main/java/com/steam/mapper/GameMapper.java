@@ -47,6 +47,8 @@ public interface GameMapper {
                           @Param("onSale") Boolean onSale,
                           @Param("featured") Boolean featured);
     
+    List<Game> findByIds(@Param("ids") List<Long> ids);
+
     @Update("UPDATE games SET stock = stock - 1, sales_count = sales_count + 1 WHERE id = #{id} AND stock > 0")
     int decreaseStock(Long id);
     

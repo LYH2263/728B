@@ -86,7 +86,8 @@ export const gameApi = {
   getOnSale: (limit?: number) => api.get('/games/on-sale', { params: { limit } }),
   getBestSellers: (limit?: number) => api.get('/games/best-sellers', { params: { limit } }),
   getNewReleases: (limit?: number) => api.get('/games/new-releases', { params: { limit } }),
-  getCategories: (gameId: number) => api.get(`/games/${gameId}/categories`)
+  getCategories: (gameId: number) => api.get(`/games/${gameId}/categories`),
+  getGamesByIds: (ids: number[]) => api.get('/games/batch', { params: { ids: ids.join(',') } })
 }
 
 // 分类相关

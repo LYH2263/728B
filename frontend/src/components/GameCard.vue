@@ -1,23 +1,28 @@
 <template>
   <div class="game-card" @click="goToDetail">
-    <!-- 游戏封面 -->
     <div class="cover-wrapper">
       <img 
         v-lazy="game.coverImage || '/placeholder.jpg'"
         :alt="game.title"
         class="cover-image"
       />
-      <!-- 折扣标签 -->
       <div v-if="hasDiscount" class="discount-badge">
         -{{ game.discountPercent }}%
       </div>
+      <div class="compare-checkbox" :class="{ 'is-active': compareStore.isSelected(game.id) }" @click.stop>
+        <el-checkbox
+          :model-value="compareStore.isSelected(game.id)"
+          :disabled="compareStore.isFull && !compareStore.isSelected(game.id)"
+          @change="handleCompareToggle"
+        >
+          对比
+        </el-checkbox>
+      </div>
     </div>
     
-    <!-- 游戏信息 -->
     <div class="game-info">
       <h3 class="game-title">{{ game.title }}</h3>
       
-      <!-- 标签 -->
       <div v-if="parsedTags.length" class="game-tags">
         <el-tag 
           v-for="tag in parsedTags.slice(0, 3)" 
@@ -29,7 +34,6 @@
         </el-tag>
       </div>
       
-      <!-- 评分 -->
       <div class="game-rating" v-if="game.rating">
         <el-rate 
           :model-value="game.rating" 
@@ -40,7 +44,6 @@
         <span class="rating-text">{{ game.rating }}</span>
       </div>
       
-      <!-- 价格 -->
       <div class="game-price">
         <template v-if="isFree">
           <span class="price free">免费游玩</span>
@@ -61,12 +64,14 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Game } from '@/types'
+import { useCompareStore } from '@/store/compare'
 
 const props = defineProps<{
   game: Game
 }>()
 
 const router = useRouter()
+const compareStore = useCompareStore()
 
 const isFree = computed(() => props.game.originalPrice === 0)
 const hasDiscount = computed(() => props.game.discountPercent && props.game.discountPercent > 0)
@@ -82,6 +87,10 @@ const parsedTags = computed(() => {
 
 function goToDetail() {
   router.push(`/game/${props.game.id}`)
+}
+
+function handleCompareToggle() {
+  compareStore.toggleSelect(props.game.id)
 }
 </script>
 
@@ -101,6 +110,10 @@ function goToDetail() {
     
     .cover-image {
       transform: scale(1.05);
+    }
+
+    .compare-checkbox {
+      opacity: 1;
     }
   }
 }
@@ -127,6 +140,32 @@ function goToDetail() {
     border-radius: var(--radius-sm);
     font-weight: 700;
     font-size: 14px;
+  }
+
+  .compare-checkbox {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+
+    :deep(.el-checkbox__label) {
+      color: var(--text-primary);
+      font-size: 12px;
+    }
+
+    :deep(.el-checkbox__inner) {
+      background: transparent;
+    }
+
+    &.is-checked,
+    &.is-active,
+    :deep(.el-checkbox.is-checked) {
+      opacity: 1;
+    }
   }
 }
 

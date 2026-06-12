@@ -130,7 +130,14 @@ public class GameService {
     /**
      * 获取游戏的分类
      */
-    public List<Category> getGameCategories(Long gameId) {
+    public List<Game> getGameCategories(Long gameId) {
         return categoryMapper.findByGameId(gameId);
+    }
+
+    public List<Game> getGamesByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return gameMapper.findByIds(ids);
     }
 }

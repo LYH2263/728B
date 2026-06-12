@@ -89,4 +89,11 @@
             AND g.is_featured = 1
         </if>
     </select>
+
+    <select id="findByIds" resultType="com.steam.entity.Game">
+        SELECT * FROM games WHERE status = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
 </mapper>
