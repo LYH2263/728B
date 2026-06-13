@@ -418,3 +418,29 @@ export interface GameAnswer {
 
 // 问答筛选类型
 export type QAFilterType = 'all' | 'pending' | 'resolved' | 'hot'
+
+export interface GameCollection {
+  id: number
+  userId: number
+  name: string
+  description?: string
+  coverImages?: string
+  isPublic: number
+  gameCount: number
+  totalPrice: number
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+  username?: string
+  userAvatar?: string
+}
+
+export interface CollectionGameItem {
+  id: number
+  collectionId: number
+  gameId: number
+  sortOrder: number
+  createdAt: string
+  game: Game
+  currentPrice: number
+}

@@ -50,25 +50,32 @@
       
       <!-- 统计卡片 -->
       <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" @click="router.push('/library')">
           <el-icon :size="32" color="var(--steam-light-blue)"><Collection /></el-icon>
           <div class="stat-info">
             <span class="stat-value">{{ libraryCount }}</span>
             <span class="stat-label">已拥有游戏</span>
           </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" @click="router.push('/cart')">
           <el-icon :size="32" color="var(--steam-green)"><ShoppingCart /></el-icon>
           <div class="stat-info">
             <span class="stat-value">{{ cartCount }}</span>
             <span class="stat-label">购物车</span>
           </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" @click="router.push('/wishlist')">
           <el-icon :size="32" color="#ffd700"><Star /></el-icon>
           <div class="stat-info">
             <span class="stat-value">{{ wishlistCount }}</span>
             <span class="stat-label">愿望单</span>
+          </div>
+        </div>
+        <div class="stat-card" @click="router.push('/collections')">
+          <el-icon :size="32" color="#8b5cf6"><FolderOpened /></el-icon>
+          <div class="stat-info">
+            <span class="stat-value">{{ collectionCount }}</span>
+            <span class="stat-label">我的合集</span>
           </div>
         </div>
       </div>
@@ -157,7 +164,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { useCartStore } from '@/store/cart'
-import { libraryApi, wishlistApi, developerApi } from '@/api'
+import { libraryApi, wishlistApi, developerApi, collectionApi } from '@/api'
 import type { DeveloperFollowItem } from '@/types'
 import { ElMessage } from 'element-plus'
 
@@ -177,6 +184,7 @@ function getAvatarUrl(avatar: string | undefined): string {
 
 const libraryCount = ref(0)
 const wishlistCount = ref(0)
+const collectionCount = ref(0)
 const followedDevelopers = ref<DeveloperFollowItem[]>([])
 const cartCount = computed(() => cartStore.count)
 
@@ -205,6 +213,7 @@ onMounted(async () => {
   await Promise.all([
     fetchLibraryCount(),
     fetchWishlistCount(),
+    fetchCollectionCount(),
     fetchFollowedDevelopers()
   ])
 })
@@ -233,6 +242,15 @@ async function fetchFollowedDevelopers() {
     followedDevelopers.value = res.data.data || []
   } catch (error) {
     followedDevelopers.value = []
+  }
+}
+
+async function fetchCollectionCount() {
+  try {
+    const res = await collectionApi.getMyCollectionCount()
+    collectionCount.value = res.data.data || 0
+  } catch (error) {
+    collectionCount.value = 0
   }
 }
 
@@ -421,7 +439,7 @@ async function handleRecharge() {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
@@ -433,6 +451,13 @@ async function handleRecharge() {
   align-items: center;
   gap: 16px;
   border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    border-color: var(--steam-light-blue);
+    transform: translateY(-2px);
+  }
   
   .stat-info {
     display: flex;
@@ -486,7 +511,7 @@ async function handleRecharge() {
   }
   
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .avatar-section {

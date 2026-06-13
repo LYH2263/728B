@@ -221,3 +221,27 @@ export const gameQaApi = {
   adoptAnswer: (answerId: number) =>
     api.post(`/game-qa/answers/${answerId}/adopt`)
 }
+
+// 合集相关
+export const collectionApi = {
+  getMyCollections: () => api.get('/collections/my'),
+  getCollectionDetail: (id: number) => api.get(`/collections/${id}`),
+  getCollectionDetailPublic: (id: number) => api.get(`/collections/${id}/public`),
+  createCollection: (data: { name: string; description?: string; isPublic?: number }) =>
+    api.post('/collections', data),
+  updateCollection: (id: number, data: { name?: string; description?: string; isPublic?: number }) =>
+    api.put(`/collections/${id}`, data),
+  deleteCollection: (id: number) => api.delete(`/collections/${id}`),
+  getCollectionGames: (id: number) => api.get(`/collections/${id}/games`),
+  getCollectionGamesPublic: (id: number) => api.get(`/collections/${id}/games/public`),
+  addGameToCollection: (collectionId: number, gameId: number) =>
+    api.post(`/collections/${collectionId}/games`, { gameId }),
+  removeGameFromCollection: (collectionId: number, gameId: number) =>
+    api.delete(`/collections/${collectionId}/games/${gameId}`),
+  reorderGames: (collectionId: number, gameIds: number[]) =>
+    api.put(`/collections/${collectionId}/games/reorder`, { gameIds }),
+  getPublicCollections: (page: number = 1, size: number = 20) =>
+    api.get('/collections/public', { params: { page, size } }),
+  getGameCollectionIds: (gameId: number) => api.get(`/collections/game-collections/${gameId}`),
+  getMyCollectionCount: () => api.get('/collections/count')
+}

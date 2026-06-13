@@ -672,6 +672,48 @@ CREATE TABLE IF NOT EXISTS `game_answers` (
     INDEX `idx_adopted` (`is_adopted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='游戏问答回答表';
 
+-- ===================== 自定义合集模块表 =====================
+
+CREATE TABLE IF NOT EXISTS `collections` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `name` VARCHAR(100) NOT NULL COMMENT '合集名称',
+    `description` VARCHAR(500) COMMENT '合集描述',
+    `cover_images` JSON COMMENT '封面拼图(最多4张游戏封面URL的JSON数组)',
+    `is_public` TINYINT DEFAULT 0 COMMENT '是否公开: 0私密 1公开',
+    `game_count` INT DEFAULT 0 COMMENT '游戏数量',
+    `total_price` DECIMAL(10,2) DEFAULT 0.00 COMMENT '游戏总价',
+    `sort_order` INT DEFAULT 0 COMMENT '排序',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_is_public` (`is_public`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='游戏合集表';
+
+CREATE TABLE IF NOT EXISTS `collection_games` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `collection_id` BIGINT NOT NULL COMMENT '合集ID',
+    `game_id` BIGINT NOT NULL COMMENT '游戏ID',
+    `sort_order` INT DEFAULT 0 COMMENT '排序',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`collection_id`) REFERENCES `collections`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON DELETE CASCADE,
+    UNIQUE KEY `uk_collection_game` (`collection_id`, `game_id`),
+    INDEX `idx_collection_id` (`collection_id`),
+    INDEX `idx_game_id` (`game_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='合集游戏关联表';
+
+-- 初始化示例合集数据
+INSERT INTO `collections` (`user_id`, `name`, `description`, `is_public`, `game_count`, `total_price`) VALUES
+(2, '打折再买', '等折扣降到心理价位再入手', 1, 2, 447.50),
+(2, '送给弟弟', '准备送给弟弟的生日礼物', 0, 1, 134.00);
+
+INSERT INTO `collection_games` (`collection_id`, `game_id`, `sort_order`) VALUES
+(1, 2, 1),
+(1, 3, 2),
+(2, 6, 1);
+
 -- 回答点赞记录(防重复点赞)
 CREATE TABLE IF NOT EXISTS `game_answer_likes` (
     `id` BIGINT PRIMARY KEY AUTO_INCREMENT,

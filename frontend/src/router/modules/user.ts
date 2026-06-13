@@ -42,6 +42,18 @@ const userRoutes: RouteRecordRaw[] = [
     name: 'Notifications',
     component: () => import('@/views/Notifications.vue'),
     meta: { title: '我的通知', requiresAuth: true }
+  },
+  {
+    path: '/collections',
+    name: 'Collections',
+    component: () => import('@/views/Collections.vue'),
+    meta: { title: '我的合集', requiresAuth: true }
+  },
+  {
+    path: '/collections/:id',
+    name: 'CollectionDetail',
+    component: () => import('@/views/CollectionDetail.vue'),
+    meta: { title: '合集详情', requiresAuth: false }
   }
 ]
 

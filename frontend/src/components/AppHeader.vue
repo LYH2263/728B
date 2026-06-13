@@ -150,6 +150,10 @@
                   <el-icon><Star /></el-icon>
                   愿望单
                 </el-dropdown-item>
+                <el-dropdown-item command="collections">
+                  <el-icon><FolderOpened /></el-icon>
+                  我的合集
+                </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>
                   退出登录
@@ -216,6 +220,10 @@
           <router-link to="/wishlist" class="mobile-nav-item" @click="showMobileMenu = false">
             <el-icon><Star /></el-icon>
             愿望单
+          </router-link>
+          <router-link to="/collections" class="mobile-nav-item" @click="showMobileMenu = false">
+            <el-icon><FolderOpened /></el-icon>
+            我的合集
           </router-link>
           <router-link to="/notifications" class="mobile-nav-item" @click="showMobileMenu = false">
             <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="mobile-notification-badge">
@@ -400,6 +408,9 @@ function handleCommand(command: string) {
       break
     case 'wishlist':
       router.push('/wishlist')
+      break
+    case 'collections':
+      router.push('/collections')
       break
     case 'logout':
       handleLogout()

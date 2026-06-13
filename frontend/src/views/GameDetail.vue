@@ -221,6 +221,14 @@
                 <el-icon><Star /></el-icon>
                 {{ inWishlist ? '移出愿望单' : '加入愿望单' }}
               </el-button>
+              <el-button 
+                size="large" 
+                style="width: 100%;margin-left:0;"
+                @click="showCollectionDialog = true"
+              >
+                <el-icon><FolderOpened /></el-icon>
+                加入合集
+              </el-button>
             </template>
           </div>
         </div>
@@ -232,15 +240,63 @@
   <div v-else-if="loading" class="loading-container">
     <el-skeleton :rows="10" animated />
   </div>
+
+  <el-dialog v-model="showCollectionDialog" title="选择加入哪个合集" width="420px">
+    <div v-if="collectionLoading" style="text-align: center; padding: 20px;">
+      <el-icon class="is-loading" :size="24"><Loading /></el-icon>
+    </div>
+    <template v-else>
+      <div v-if="myCollections.length" class="collection-select-list">
+        <div
+          v-for="col in myCollections"
+          :key="col.id"
+          class="collection-select-item"
+          :class="{ 'is-in': gameCollectionIds.includes(col.id) }"
+          @click="handleToggleCollection(col)"
+        >
+          <div class="col-name">{{ col.name }}</div>
+          <div class="col-meta">{{ col.gameCount }} 款游戏 · {{ col.isPublic ? '公开' : '私密' }}</div>
+          <el-icon v-if="gameCollectionIds.includes(col.id)" class="check-icon"><Check /></el-icon>
+        </div>
+      </div>
+      <el-empty v-else description="还没有合集" :image-size="60">
+        <el-button size="small" type="primary" @click="goToCreateCollection">去创建</el-button>
+      </el-empty>
+      <div class="create-row" v-if="myCollections.length">
+        <el-button size="small" type="primary" plain @click="showQuickCreate = true">
+          <el-icon><Plus /></el-icon>
+          新建合集
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="showQuickCreate" title="快速新建合集" width="380px" append-to-body>
+    <el-form :model="quickCreateForm" label-width="70px">
+      <el-form-item label="名称">
+        <el-input v-model="quickCreateForm.name" placeholder="如：打折再买" maxlength="50" />
+      </el-form-item>
+      <el-form-item label="可见性">
+        <el-radio-group v-model="quickCreateForm.isPublic">
+          <el-radio :label="0">私密</el-radio>
+          <el-radio :label="1">公开</el-radio>
+        </el-radio-group>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showQuickCreate = false">取消</el-button>
+      <el-button type="primary" :loading="quickCreateLoading" @click="handleQuickCreate">创建并加入</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { gameApi, reviewApi, wishlistApi, libraryApi, priceHistoryApi, developerApi } from '@/api'
+import { gameApi, reviewApi, wishlistApi, libraryApi, priceHistoryApi, developerApi, collectionApi } from '@/api'
 import { useUserStore } from '@/store/user'
 import { useCartStore } from '@/store/cart'
-import type { Game, GameReview, PriceChartDTO, Developer } from '@/types'
+import type { Game, GameReview, PriceChartDTO, Developer, GameCollection } from '@/types'
 import { ElMessage } from 'element-plus'
 import RichText from '@/components/RichText.vue'
 import GameQA from '@/components/GameQA.vue'
@@ -266,6 +322,14 @@ const chartLoading = ref(false)
 const chartDays = ref(30)
 const priceChartData = ref<PriceChartDTO | null>(null)
 const developerId = ref<number | null>(null)
+
+const showCollectionDialog = ref(false)
+const collectionLoading = ref(false)
+const myCollections = ref<GameCollection[]>([])
+const gameCollectionIds = ref<number[]>([])
+const showQuickCreate = ref(false)
+const quickCreateLoading = ref(false)
+const quickCreateForm = reactive({ name: '', isPublic: 0 })
 
 const gameId = computed(() => Number(route.params.id))
 const isFree = computed(() => game.value?.originalPrice === 0)
@@ -562,6 +626,77 @@ async function handleHelpful(reviewId: number) {
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('zh-CN')
+}
+
+async function fetchCollectionsForGame() {
+  if (!userStore.isLoggedIn) return
+  collectionLoading.value = true
+  try {
+    const [colsRes, idsRes] = await Promise.all([
+      collectionApi.getMyCollections(),
+      collectionApi.getGameCollectionIds(gameId.value)
+    ])
+    myCollections.value = colsRes.data.data || []
+    gameCollectionIds.value = idsRes.data.data || []
+  } catch {
+    myCollections.value = []
+    gameCollectionIds.value = []
+  } finally {
+    collectionLoading.value = false
+  }
+}
+
+watch(showCollectionDialog, (val) => {
+  if (val) fetchCollectionsForGame()
+})
+
+async function handleToggleCollection(col: GameCollection) {
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    return
+  }
+  try {
+    if (gameCollectionIds.value.includes(col.id)) {
+      await collectionApi.removeGameFromCollection(col.id, gameId.value)
+      gameCollectionIds.value = gameCollectionIds.value.filter(id => id !== col.id)
+      ElMessage.success(`已从「${col.name}」移除`)
+    } else {
+      await collectionApi.addGameToCollection(col.id, gameId.value)
+      gameCollectionIds.value.push(col.id)
+      ElMessage.success(`已加入「${col.name}」`)
+    }
+  } catch { /* handled */ }
+}
+
+function goToCreateCollection() {
+  showCollectionDialog.value = false
+  router.push('/collections')
+}
+
+async function handleQuickCreate() {
+  if (!quickCreateForm.name.trim()) {
+    ElMessage.warning('请输入合集名称')
+    return
+  }
+  quickCreateLoading.value = true
+  try {
+    const res = await collectionApi.createCollection({
+      name: quickCreateForm.name.trim(),
+      isPublic: quickCreateForm.isPublic
+    })
+    const newCol = res.data.data
+    if (newCol) {
+      await collectionApi.addGameToCollection(newCol.id, gameId.value)
+      gameCollectionIds.value.push(newCol.id)
+      ElMessage.success(`已创建合集「${newCol.name}」并加入`)
+    }
+    showQuickCreate.value = false
+    quickCreateForm.name = ''
+    quickCreateForm.isPublic = 0
+    await fetchCollectionsForGame()
+  } catch { /* handled */ } finally {
+    quickCreateLoading.value = false
+  }
 }
 </script>
 
@@ -945,6 +1080,60 @@ function formatDate(date: string) {
 
 .loading-container {
   padding: 40px;
+}
+
+.collection-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.collection-select-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+
+  &:hover {
+    border-color: var(--steam-light-blue);
+    background: var(--bg-hover);
+  }
+
+  &.is-in {
+    border-color: var(--steam-green);
+    background: rgba(164, 208, 7, 0.08);
+  }
+
+  .col-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-white);
+  }
+
+  .col-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .check-icon {
+    position: absolute;
+    right: 16px;
+    color: var(--steam-green);
+    font-size: 18px;
+  }
+}
+
+.create-row {
+  margin-top: 12px;
+  text-align: center;
 }
 
 // 响应式

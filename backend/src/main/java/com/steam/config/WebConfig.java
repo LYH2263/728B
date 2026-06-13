@@ -42,6 +42,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "/developers/top",
                         "/developers/search",
                         "/developers/{id}",
+                        "/collections/public",
+                        "/collections/{id}/public",
+                        "/collections/{id}/games/public",
                         "/error"
                 );
     }
