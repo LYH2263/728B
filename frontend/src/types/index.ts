@@ -354,3 +354,34 @@ export interface BalanceLog {
   description: string
   createdAt: string
 }
+
+// 开发商
+export interface Developer {
+  id: number
+  name: string
+  avatar?: string
+  description?: string
+  country?: string
+  foundedYear?: number
+  website?: string
+  followerCount: number
+  gameCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+// 开发商详情（含游戏列表和关注状态）
+export interface DeveloperDetail {
+  developer: Developer
+  games: Game[]
+  isFollowing: boolean
+}
+
+// 开发商关注记录
+export interface DeveloperFollowItem {
+  id: number
+  userId: number
+  developerId: number
+  createdAt: string
+  developer: Developer
+}

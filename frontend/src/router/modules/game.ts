@@ -26,6 +26,12 @@ const gameRoutes: RouteRecordRaw[] = [
     meta: { title: '游戏详情' }
   },
   {
+    path: '/developer/:id',
+    name: 'DeveloperDetail',
+    component: () => import('@/views/DeveloperDetail.vue'),
+    meta: { title: '开发商主页' }
+  },
+  {
     path: '/category/:category',
     name: 'Category',
     component: () => import('@/views/Store.vue'),

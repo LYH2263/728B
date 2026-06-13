@@ -18,6 +18,7 @@ public class NotificationService {
     private final NotificationMapper notificationMapper;
     
     private static final String TYPE_PRICE_DROP = "PRICE_DROP";
+    private static final String TYPE_NEW_GAME = "NEW_GAME";
     
     public List<Notification> getNotifications(Long userId, Integer limit) {
         return notificationMapper.findByUserId(userId, limit != null ? limit : 50);
@@ -85,6 +86,30 @@ public class NotificationService {
         notificationMapper.insert(notification);
         log.info("为用户 {} 创建游戏 {} 降价通知: {}%", userId, gameId, priceDropPercent);
         
+        return notification;
+    }
+
+    @Transactional
+    public Notification createNewGameNotification(Long userId, Long gameId, String title, String content, Long developerId) {
+        Notification existing = notificationMapper.findUnreadByUserAndGameAndType(
+                userId, gameId, TYPE_NEW_GAME);
+
+        if (existing != null) {
+            log.info("用户 {} 已有游戏 {} 的未读新游通知，跳过", userId, gameId);
+            return null;
+        }
+
+        Notification notification = new Notification();
+        notification.setUserId(userId);
+        notification.setType(TYPE_NEW_GAME);
+        notification.setGameId(gameId);
+        notification.setTitle(title);
+        notification.setContent(content);
+        notification.setIsRead(0);
+
+        notificationMapper.insert(notification);
+        log.info("为用户 {} 创建新游通知: 游戏 {}", userId, gameId);
+
         return notification;
     }
 }

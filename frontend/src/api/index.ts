@@ -190,3 +190,16 @@ export const notificationApi = {
   markAllAsRead: () => api.put('/notifications/read-all'),
   deleteNotification: (id: number) => api.delete(`/notifications/${id}`)
 }
+
+// 开发商相关
+export const developerApi = {
+  getAll: () => api.get('/developers'),
+  getTop: (limit?: number) => api.get('/developers/top', { params: { limit } }),
+  search: (keyword: string, limit?: number) => api.get('/developers/search', { params: { keyword, limit } }),
+  getDetail: (id: number) => api.get(`/developers/${id}`),
+  follow: (id: number) => api.post(`/developers/${id}/follow`),
+  unfollow: (id: number) => api.delete(`/developers/${id}/follow`),
+  getFollowStatus: (id: number) => api.get(`/developers/${id}/follow-status`),
+  getFollowed: () => api.get('/developers/followed'),
+  getFollowedCount: () => api.get('/developers/followed/count')
+}

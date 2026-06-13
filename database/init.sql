@@ -587,3 +587,45 @@ CREATE TABLE IF NOT EXISTS `notifications` (
 -- 添加愿望单表字段：记录加入时的价格
 ALTER TABLE `wishlist` ADD COLUMN `added_price` DECIMAL(10,2) COMMENT '加入愿望单时的价格(折扣价或原价)' AFTER `game_id`;
 ALTER TABLE `wishlist` ADD COLUMN `added_original_price` DECIMAL(10,2) COMMENT '加入愿望单时的原价' AFTER `added_price`;
+
+-- ===================== 开发商模块表 =====================
+
+CREATE TABLE IF NOT EXISTS `developers` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(100) NOT NULL UNIQUE COMMENT '开发商/发行商名称',
+    `avatar` VARCHAR(500) COMMENT '头像/Logo URL',
+    `description` TEXT COMMENT '简介',
+    `country` VARCHAR(50) COMMENT '国家/地区',
+    `founded_year` INT COMMENT '成立年份',
+    `website` VARCHAR(500) COMMENT '官方网站',
+    `follower_count` INT DEFAULT 0 COMMENT '粉丝数',
+    `game_count` INT DEFAULT 0 COMMENT '游戏数量',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_name` (`name`),
+    INDEX `idx_follower_count` (`follower_count`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='开发商/发行商表';
+
+CREATE TABLE IF NOT EXISTS `developer_follows` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `developer_id` BIGINT NOT NULL COMMENT '开发商ID',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`developer_id`) REFERENCES `developers`(`id`) ON DELETE CASCADE,
+    UNIQUE KEY `uk_user_developer` (`user_id`, `developer_id`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_developer_id` (`developer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='开发商关注表';
+
+INSERT INTO `developers` (`name`, `description`, `country`, `founded_year`, `game_count`) VALUES
+('CD PROJEKT RED', '波兰游戏开发商，以《巫师》系列和《赛博朋克2077》闻名于世。', '波兰', 1994, 1),
+('FromSoftware Inc.', '日本知名游戏开发商，以高难度动作RPG著称，代表作包括《黑暗之魂》系列、《艾尔登法环》和《只狼》。', '日本', 1986, 1),
+('Avalanche Software', '美国游戏开发商，以《霍格沃茨之遗》闻名。', '美国', 1995, 1),
+('Larian Studios', '比利时独立游戏开发商，以《博德之门3》和《神界原罪》系列闻名。', '比利时', 1996, 1),
+('Valve', '美国游戏开发商和数字发行平台运营商，旗下有Steam平台和《反恐精英》系列。', '美国', 1996, 1),
+('FromSoftware', '日本知名游戏开发商，代表作《只狼：影逝二度》。', '日本', 1986, 1),
+('Firaxis Games', '美国策略游戏开发商，以《文明》系列和《XCOM》系列闻名。', '美国', 1996, 1),
+('ConcernedApe', '独立游戏开发者Eric Barone的工作室，以《星露谷物语》闻名。', '美国', 2011, 1),
+('Game Science', '中国游戏开发商，以《黑神话：悟空》闻名。', '中国', 2014, 1),
+('Rockstar Games', '美国知名游戏开发商，以《GTA》系列和《荒野大镖客》系列闻名。', '美国', 1998, 1);

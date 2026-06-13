@@ -158,7 +158,7 @@
           <div class="game-meta">
             <div class="meta-item" v-if="game.developer">
               <span class="label">开发商</span>
-              <span class="value">{{ game.developer }}</span>
+              <span class="value developer-link" @click="goToDeveloper">{{ game.developer }}</span>
             </div>
             <div class="meta-item" v-if="game.publisher">
               <span class="label">发行商</span>
@@ -230,10 +230,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { gameApi, reviewApi, wishlistApi, libraryApi, priceHistoryApi } from '@/api'
+import { gameApi, reviewApi, wishlistApi, libraryApi, priceHistoryApi, developerApi } from '@/api'
 import { useUserStore } from '@/store/user'
 import { useCartStore } from '@/store/cart'
-import type { Game, GameReview, PriceChartDTO } from '@/types'
+import type { Game, GameReview, PriceChartDTO, Developer } from '@/types'
 import { ElMessage } from 'element-plus'
 import RichText from '@/components/RichText.vue'
 import { TrendCharts } from '@element-plus/icons-vue'
@@ -255,6 +255,7 @@ let chartInstance: echarts.ECharts | null = null
 const chartLoading = ref(false)
 const chartDays = ref(30)
 const priceChartData = ref<PriceChartDTO | null>(null)
+const developerId = ref<number | null>(null)
 
 const gameId = computed(() => Number(route.params.id))
 const isFree = computed(() => game.value?.originalPrice === 0)
@@ -451,9 +452,32 @@ async function fetchGame() {
   try {
     const res = await gameApi.getGame(gameId.value)
     game.value = res.data.data
+    await fetchDeveloperId()
   } catch (error) {
     ElMessage.error('游戏不存在')
     router.push('/store')
+  }
+}
+
+async function fetchDeveloperId() {
+  if (!game.value?.developer) return
+  try {
+    const res = await developerApi.search(game.value.developer, 1)
+    const devs = res.data.data || []
+    if (devs.length > 0) {
+      const matched = devs.find((d: Developer) => d.name === game.value!.developer)
+      if (matched) {
+        developerId.value = matched.id
+      }
+    }
+  } catch (error) {
+    // ignore
+  }
+}
+
+function goToDeveloper() {
+  if (developerId.value) {
+    router.push(`/developer/${developerId.value}`)
   }
 }
 
@@ -831,6 +855,17 @@ function formatDate(date: string) {
     
     .value {
       color: var(--text-primary);
+    }
+
+    .developer-link {
+      color: var(--steam-light-blue);
+      cursor: pointer;
+      transition: color 0.3s;
+
+      &:hover {
+        color: var(--text-white);
+        text-decoration: underline;
+      }
     }
   }
 }

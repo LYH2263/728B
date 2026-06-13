@@ -72,6 +72,33 @@
           </div>
         </div>
       </div>
+
+      <!-- 我关注的开发商 -->
+      <div class="followed-developers-section" v-if="followedDevelopers.length">
+        <h2 class="section-title">
+          <el-icon><OfficeBuilding /></el-icon>
+          我关注的开发商
+        </h2>
+        <div class="developers-list">
+          <div
+            v-for="item in followedDevelopers"
+            :key="item.id"
+            class="developer-card"
+            @click="goToDeveloper(item.developerId)"
+          >
+            <el-avatar :size="48" :src="item.developer?.avatar">
+              {{ item.developer?.name?.charAt(0) }}
+            </el-avatar>
+            <div class="developer-info">
+              <span class="developer-name">{{ item.developer?.name }}</span>
+              <span class="developer-meta">
+                {{ item.developer?.gameCount || 0 }} 款游戏 · {{ item.developer?.followerCount || 0 }} 粉丝
+              </span>
+            </div>
+            <el-icon class="arrow-icon"><ArrowRight /></el-icon>
+          </div>
+        </div>
+      </div>
     </div>
     
     <!-- 编辑资料对话框 -->
@@ -127,11 +154,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { useCartStore } from '@/store/cart'
-import { libraryApi, wishlistApi } from '@/api'
+import { libraryApi, wishlistApi, developerApi } from '@/api'
+import type { DeveloperFollowItem } from '@/types'
 import { ElMessage } from 'element-plus'
 
+const router = useRouter()
 const userStore = useUserStore()
 const cartStore = useCartStore()
 
@@ -147,6 +177,7 @@ function getAvatarUrl(avatar: string | undefined): string {
 
 const libraryCount = ref(0)
 const wishlistCount = ref(0)
+const followedDevelopers = ref<DeveloperFollowItem[]>([])
 const cartCount = computed(() => cartStore.count)
 
 const showEditDialog = ref(false)
@@ -173,7 +204,8 @@ onMounted(async () => {
   
   await Promise.all([
     fetchLibraryCount(),
-    fetchWishlistCount()
+    fetchWishlistCount(),
+    fetchFollowedDevelopers()
   ])
 })
 
@@ -193,6 +225,19 @@ async function fetchWishlistCount() {
   } catch (error) {
     wishlistCount.value = 0
   }
+}
+
+async function fetchFollowedDevelopers() {
+  try {
+    const res = await developerApi.getFollowed()
+    followedDevelopers.value = res.data.data || []
+  } catch (error) {
+    followedDevelopers.value = []
+  }
+}
+
+function goToDeveloper(id: number) {
+  router.push(`/developer/${id}`)
 }
 
 async function handleSaveProfile() {
@@ -306,6 +351,72 @@ async function handleRecharge() {
   margin-top: 24px;
   display: flex;
   gap: 16px;
+}
+
+.followed-developers-section {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid var(--border-color);
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    color: var(--text-white);
+    margin-bottom: 16px;
+  }
+
+  .developers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .developer-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:hover {
+      border-color: var(--steam-light-blue);
+      background: var(--bg-hover);
+    }
+
+    .developer-info {
+      flex: 1;
+
+      .developer-name {
+        display: block;
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--text-white);
+        margin-bottom: 4px;
+      }
+
+      .developer-meta {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+    }
+
+    .arrow-icon {
+      color: var(--text-secondary);
+    }
+
+    :deep(.el-avatar) {
+      background: var(--steam-blue);
+      font-size: 18px;
+      font-weight: 600;
+    }
+  }
 }
 
 .stats-grid {

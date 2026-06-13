@@ -38,6 +38,10 @@ public class WebConfig implements WebMvcConfigurer {
                         "/games/**",
                         "/categories/**",
                         "/reviews/game/**",
+                        "/developers",
+                        "/developers/top",
+                        "/developers/search",
+                        "/developers/{id}",
                         "/error"
                 );
     }

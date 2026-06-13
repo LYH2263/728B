@@ -45,6 +45,13 @@
                 降价通知
               </el-tag>
               <el-tag 
+                v-if="notification.type === 'NEW_GAME'" 
+                type="primary" 
+                size="small"
+              >
+                新游通知
+              </el-tag>
+              <el-tag 
                 v-if="notification.isRead === 0" 
                 type="primary" 
                 size="small"
@@ -64,6 +71,12 @@
                 <span class="drop-percent" v-if="notification.priceDropPercent">
                   -{{ notification.priceDropPercent }}%
                 </span>
+              </div>
+            </div>
+            <div class="notification-details new-game-details" v-if="notification.type === 'NEW_GAME'">
+              <div class="new-game-info">
+                <el-icon><Promotion /></el-icon>
+                <span>{{ notification.content }}</span>
               </div>
             </div>
             <div class="notification-footer">
@@ -110,7 +123,7 @@ import { useRouter } from 'vue-router'
 import { notificationApi } from '@/api'
 import type { Notification } from '@/types'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Bell, Check, ArrowRight, Clock } from '@element-plus/icons-vue'
+import { Bell, Check, ArrowRight, Clock, Promotion } from '@element-plus/icons-vue'
 
 const router = useRouter()
 
@@ -349,6 +362,16 @@ async function handleDelete(id: number) {
         font-size: 12px;
         font-weight: 600;
       }
+    }
+  }
+  
+  .new-game-details {
+    .new-game-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--steam-light-blue);
+      font-size: 14px;
     }
   }
   

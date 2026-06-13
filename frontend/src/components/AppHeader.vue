@@ -86,6 +86,9 @@
                         <span v-if="notification.priceDropPercent" class="notification-price-drop">
                           降价 {{ notification.priceDropPercent }}%
                         </span>
+                        <span v-if="notification.type === 'NEW_GAME'" class="notification-new-game">
+                          新游发布
+                        </span>
                       </div>
                     </div>
                     <el-icon v-if="notification.isRead === 0" class="unread-dot"><CircleClose /></el-icon>
@@ -677,6 +680,12 @@ async function handleLogout() {
       .notification-price-drop {
         font-size: 11px;
         color: var(--steam-green);
+        font-weight: 600;
+      }
+
+      .notification-new-game {
+        font-size: 11px;
+        color: var(--steam-light-blue);
         font-weight: 600;
       }
     }
