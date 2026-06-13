@@ -112,34 +112,41 @@
           </div>
         </div>
         
-        <!-- 评论区 -->
-        <div class="reviews-section">
-          <h2 class="section-title">玩家评测</h2>
-          <div v-if="reviews.length" class="reviews-list">
-            <div v-for="review in reviews" :key="review.id" class="review-item">
-              <div class="review-header">
-                <el-avatar :size="40" :src="getAvatarUrl(review.user?.avatar)">
-                  {{ review.user?.nickname?.charAt(0) || 'U' }}
-                </el-avatar>
-                <div class="review-user">
-                  <span class="username">{{ review.user?.nickname || review.user?.username }}</span>
-                  <span class="recommend" :class="{ positive: review.isRecommend }">
-                    {{ review.isRecommend ? '👍 推荐' : '👎 不推荐' }}
-                  </span>
+        <!-- 评测与问答 Tabs -->
+        <div class="community-section">
+          <el-tabs v-model="activeTab" class="community-tabs">
+            <el-tab-pane label="玩家评测" name="reviews">
+              <div v-if="reviews.length" class="reviews-list">
+                <div v-for="review in reviews" :key="review.id" class="review-item">
+                  <div class="review-header">
+                    <el-avatar :size="40" :src="getAvatarUrl(review.user?.avatar)">
+                      {{ review.user?.nickname?.charAt(0) || 'U' }}
+                    </el-avatar>
+                    <div class="review-user">
+                      <span class="username">{{ review.user?.nickname || review.user?.username }}</span>
+                      <span class="recommend" :class="{ positive: review.isRecommend }">
+                        {{ review.isRecommend ? '👍 推荐' : '👎 不推荐' }}
+                      </span>
+                    </div>
+                    <el-rate :model-value="review.rating" disabled size="small" />
+                  </div>
+                  <p class="review-content">{{ review.content }}</p>
+                  <div class="review-footer">
+                    <span class="time">{{ formatDate(review.createdAt) }}</span>
+                    <el-button text size="small" @click="handleHelpful(review.id)">
+                      <el-icon><Pointer /></el-icon>
+                      有帮助 ({{ review.helpfulCount }})
+                    </el-button>
+                  </div>
                 </div>
-                <el-rate :model-value="review.rating" disabled size="small" />
               </div>
-              <p class="review-content">{{ review.content }}</p>
-              <div class="review-footer">
-                <span class="time">{{ formatDate(review.createdAt) }}</span>
-                <el-button text size="small" @click="handleHelpful(review.id)">
-                  <el-icon><Pointer /></el-icon>
-                  有帮助 ({{ review.helpfulCount }})
-                </el-button>
-              </div>
-            </div>
-          </div>
-          <el-empty v-else description="暂无评测" />
+              <el-empty v-else description="暂无评测" />
+            </el-tab-pane>
+
+            <el-tab-pane label="问答" name="qa">
+              <GameQA v-if="game" :game-id="game.id" />
+            </el-tab-pane>
+          </el-tabs>
         </div>
       </div>
       
@@ -236,6 +243,7 @@ import { useCartStore } from '@/store/cart'
 import type { Game, GameReview, PriceChartDTO, Developer } from '@/types'
 import { ElMessage } from 'element-plus'
 import RichText from '@/components/RichText.vue'
+import GameQA from '@/components/GameQA.vue'
 import { TrendCharts } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 
@@ -249,6 +257,8 @@ const game = ref<Game | null>(null)
 const reviews = ref<GameReview[]>([])
 const ownsGame = ref(false)
 const inWishlist = ref(false)
+
+const activeTab = ref('reviews')
 
 const chartRef = ref<HTMLElement | null>(null)
 let chartInstance: echarts.ECharts | null = null
@@ -743,6 +753,25 @@ function formatDate(date: string) {
           text-decoration: line-through;
         }
       }
+    }
+  }
+}
+
+// 评测与问答 Tabs
+.community-section {
+  .community-tabs {
+    :deep(.el-tabs__item) {
+      color: var(--text-secondary);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    :deep(.el-tabs__item.is-active) {
+      color: var(--steam-light-blue);
+    }
+
+    :deep(.el-tabs__active-bar) {
+      background-color: var(--steam-light-blue);
     }
   }
 }

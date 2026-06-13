@@ -203,3 +203,21 @@ export const developerApi = {
   getFollowed: () => api.get('/developers/followed'),
   getFollowedCount: () => api.get('/developers/followed/count')
 }
+
+// 游戏问答相关
+export const gameQaApi = {
+  getQuestions: (gameId: number, filter: string = 'all', page: number = 1, size: number = 10) =>
+    api.get(`/game-qa/questions/game/${gameId}`, { params: { filter, page, size } }),
+  getQuestionDetail: (questionId: number) =>
+    api.get(`/game-qa/questions/${questionId}`),
+  getAnswers: (questionId: number) =>
+    api.get(`/game-qa/questions/${questionId}/answers`),
+  createQuestion: (data: { gameId: number; title: string; content?: string }) =>
+    api.post('/game-qa/questions', data),
+  createAnswer: (data: { questionId: number; content: string }) =>
+    api.post('/game-qa/answers', data),
+  toggleLikeAnswer: (answerId: number) =>
+    api.post(`/game-qa/answers/${answerId}/like`),
+  adoptAnswer: (answerId: number) =>
+    api.post(`/game-qa/answers/${answerId}/adopt`)
+}

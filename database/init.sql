@@ -629,3 +629,76 @@ INSERT INTO `developers` (`name`, `description`, `country`, `founded_year`, `gam
 ('ConcernedApe', '独立游戏开发者Eric Barone的工作室，以《星露谷物语》闻名。', '美国', 2011, 1),
 ('Game Science', '中国游戏开发商，以《黑神话：悟空》闻名。', '中国', 2014, 1),
 ('Rockstar Games', '美国知名游戏开发商，以《GTA》系列和《荒野大镖客》系列闻名。', '美国', 1998, 1);
+
+-- ===================== 游戏问答模块表 =====================
+
+-- 游戏问题表
+CREATE TABLE IF NOT EXISTS `game_questions` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '提问者用户ID',
+    `game_id` BIGINT NOT NULL COMMENT '关联游戏ID',
+    `title` VARCHAR(200) NOT NULL COMMENT '问题标题',
+    `content` TEXT COMMENT '问题内容',
+    `answer_count` INT DEFAULT 0 COMMENT '回答数量',
+    `view_count` INT DEFAULT 0 COMMENT '浏览次数',
+    `is_resolved` TINYINT DEFAULT 0 COMMENT '是否已解决: 0否 1是',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON DELETE CASCADE,
+    INDEX `idx_game_id` (`game_id`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_resolved` (`is_resolved`),
+    INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='游戏问答问题表';
+
+-- 游戏回答表
+CREATE TABLE IF NOT EXISTS `game_answers` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '回答者用户ID',
+    `question_id` BIGINT NOT NULL COMMENT '关联问题ID',
+    `game_id` BIGINT NOT NULL COMMENT '关联游戏ID(冗余)',
+    `content` TEXT NOT NULL COMMENT '回答内容',
+    `like_count` INT DEFAULT 0 COMMENT '点赞数量',
+    `is_adopted` TINYINT DEFAULT 0 COMMENT '是否被采纳为最佳答案: 0否 1是',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`question_id`) REFERENCES `game_questions`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON DELETE CASCADE,
+    INDEX `idx_question_id` (`question_id`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_game_id` (`game_id`),
+    INDEX `idx_adopted` (`is_adopted`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='游戏问答回答表';
+
+-- 回答点赞记录(防重复点赞)
+CREATE TABLE IF NOT EXISTS `game_answer_likes` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '点赞用户ID',
+    `answer_id` BIGINT NOT NULL COMMENT '被点赞回答ID',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`answer_id`) REFERENCES `game_answers`(`id`) ON DELETE CASCADE,
+    UNIQUE KEY `uk_user_answer` (`user_id`, `answer_id`),
+    INDEX `idx_answer_id` (`answer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='回答点赞记录表';
+
+-- 初始化问答演示数据
+INSERT INTO `game_questions` (`user_id`, `game_id`, `title`, `content`, `answer_count`, `view_count`, `is_resolved`) VALUES
+(2, 1, '配置够不够玩赛博朋克2077？', '我电脑配置是i5-9400F，GTX1660，16G内存，能流畅跑这个游戏吗？大概能开什么画质？', 2, 156, 1),
+(3, 1, '游戏支持手柄操作吗？', '想问问这个游戏支持Xbox手柄吗？操作体验怎么样？', 1, 89, 1),
+(2, 2, '艾尔登法环新手建议选什么职业？', '第一次玩魂系游戏，完全没有经验，请问新手推荐选什么职业比较好上手？', 3, 320, 1),
+(3, 9, '黑神话悟空支持DLSS吗？', '请问这款游戏支持DLSS 3吗？我的4070显卡能开什么画质比较流畅？', 1, 520, 0),
+(2, 5, 'CS2怎么设置才能提升FPS？', '电脑配置一般，打竞技模式帧数不太稳定，请问有什么优化设置建议？', 2, 280, 0);
+
+INSERT INTO `game_answers` (`user_id`, `question_id`, `game_id`, `content`, `like_count`, `is_adopted`) VALUES
+(3, 1, 1, '你的配置完全够玩！GTX1660在1080P分辨率下开中等画质，关闭光追和体积云，大概能稳定50-60帧。如果想更流畅可以把阴影和材质调低一些。', 42, 1),
+(2, 1, 1, 'i5-9400F+1660这个组合是可以的，我之前也是这个配置。建议把纹理开中，阴影调低，关闭动态模糊，基本可以稳60帧玩。', 18, 0),
+(2, 2, 1, '完全支持Xbox手柄，我就是用手柄玩的。游戏对手柄的适配做得不错，瞄准有辅助，操作体验跟键鼠各有优势，看个人习惯。', 25, 1),
+(3, 3, 2, '新手强烈推荐选「流浪骑士」！有盾有甲有好武器，容错率高，前期不容易死。或者选「勇者」也不错，力量型简单粗暴。千万别选「无用之人」，那是给老玩家准备的。', 89, 1),
+(2, 3, 2, '推荐「占星师」，远程法术起家，前期不用贴脸打，对新手非常友好。后期可以洗点转近战，玩法很多样。', 56, 0),
+(3, 3, 2, '流浪骑士确实是最稳的选择，举盾龟缩打法魂系通用。等熟悉了战斗系统之后再考虑洗点玩花活。', 34, 0),
+(2, 4, 9, '支持DLSS 3的，4070在2K分辨率下开DLSS质量模式+超高画质，光追开中，基本能稳定60帧以上。如果追求144帧可以开DLSS平衡模式。', 128, 0),
+(3, 5, 5, '把画质全调到最低，关闭多核渲染，用4:3拉伸分辨率，FPS能提升很多。另外启动项加 -nojoy -novid -high 也有帮助。', 67, 0),
+(2, 5, 5, '竞技模式建议：1024x768分辨率，全低画质，关闭抗锯齿和垂直同步。这样能最大程度保证帧数稳定，对枪更有优势。', 45, 0);

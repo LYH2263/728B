@@ -385,3 +385,36 @@ export interface DeveloperFollowItem {
   createdAt: string
   developer: Developer
 }
+
+// 游戏问答 - 问题
+export interface GameQuestion {
+  id: number
+  userId: number
+  gameId: number
+  title: string
+  content?: string
+  answerCount: number
+  viewCount: number
+  isResolved: number
+  createdAt: string
+  updatedAt: string
+  user?: User
+}
+
+// 游戏问答 - 回答
+export interface GameAnswer {
+  id: number
+  userId: number
+  questionId: number
+  gameId: number
+  content: string
+  likeCount: number
+  isAdopted: number
+  createdAt: string
+  updatedAt: string
+  user?: User
+  isLiked?: number
+}
+
+// 问答筛选类型
+export type QAFilterType = 'all' | 'pending' | 'resolved' | 'hot'
