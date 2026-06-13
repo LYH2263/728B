@@ -3,7 +3,7 @@
     <div class="page-header">
       <div class="header-content">
         <div class="header-left">
-          <el-icon :size="48" class="history-icon"><History /></el-icon>
+          <el-icon :size="48" class="history-icon"><Clock /></el-icon>
           <div>
             <h1 class="page-title">积分明细</h1>
             <p class="page-subtitle">查看您的积分获取与消耗记录</p>
@@ -171,10 +171,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
-  History,
+  Clock,
   Shop,
   Wallet,
   TrendCharts,
@@ -186,8 +185,6 @@ import {
 } from '@element-plus/icons-vue'
 import { pointApi } from '@/api'
 import type { UserPoints, PointLog, ExchangeRecord } from '@/types'
-
-const router = useRouter()
 
 const userPoints = ref<UserPoints | null>(null)
 const activeTab = ref<'logs' | 'exchange'>('logs')

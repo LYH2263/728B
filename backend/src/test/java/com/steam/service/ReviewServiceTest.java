@@ -21,12 +21,13 @@ class ReviewServiceTest {
     @Mock private GameMapper gameMapper;
     @Mock private UserLibraryMapper userLibraryMapper;
     @Mock private RateLimitService rateLimitService;
+    @Mock private PointService pointService;
 
     private ReviewService reviewService;
 
     @BeforeEach
     void setUp() {
-        reviewService = new ReviewService(reviewMapper, gameMapper, userLibraryMapper, rateLimitService);
+        reviewService = new ReviewService(reviewMapper, gameMapper, userLibraryMapper, rateLimitService, pointService);
     }
 
     @Test

@@ -10,4 +10,20 @@
             <url>https://maven.aliyun.com/repository/public</url>
         </mirror>
     </mirrors>
+
+    <profiles>
+        <profile>
+            <id>network-resilience</id>
+            <properties>
+                <maven.wagon.http.retryHandler.count>5</maven.wagon.http.retryHandler.count>
+                <maven.wagon.http.connectionTimeout>120000</maven.wagon.http.connectionTimeout>
+                <maven.wagon.http.readTimeout>120000</maven.wagon.http.readTimeout>
+                <maven.wagon.httpconnectionManager.ttlSeconds>120</maven.wagon.httpconnectionManager.ttlSeconds>
+            </properties>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>network-resilience</activeProfile>
+    </activeProfiles>
 </settings>

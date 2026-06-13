@@ -124,7 +124,7 @@ public class PriceHistoryController {
             @RequestParam(required = false) BigDecimal newDiscountPrice) {
         PriceHistory history = priceHistoryService.recordPriceChange(gameId, oldDiscountPrice, newDiscountPrice);
         if (history == null) {
-            return Result.successMessage("价格未变化");
+            return Result.success("价格未变化", null);
         }
         return Result.success(history);
     }

@@ -2,14 +2,20 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# 配置 npm 镜像
-RUN npm config set registry https://registry.npmmirror.com
+# 配置 npm 镜像及网络重试（避免瞬时网络中断导致构建失败）
+RUN npm config set registry https://registry.npmmirror.com \
+    && npm config set fetch-retries 5 \
+    && npm config set fetch-retry-mintimeout 20000 \
+    && npm config set fetch-retry-maxtimeout 120000 \
+    && npm config set fetch-timeout 600000
 
 # 复制依赖文件
 COPY package*.json ./
 
-# 安装依赖
-RUN npm install
+# 安装依赖（带重试，应对 ECONNRESET 等瞬时网络错误）
+RUN npm install --no-audit --no-fund \
+    || (sleep 5 && npm install --no-audit --no-fund) \
+    || (sleep 15 && npm install --no-audit --no-fund)
 
 # 复制源码
 COPY . .

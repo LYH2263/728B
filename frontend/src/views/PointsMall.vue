@@ -3,7 +3,7 @@
     <div class="page-header">
       <div class="header-content">
         <div class="header-left">
-          <el-icon :size="48" class="gift-icon"><Gift /></el-icon>
+          <el-icon :size="48" class="gift-icon"><Present /></el-icon>
           <div>
             <h1 class="page-title">积分商城</h1>
             <p class="page-subtitle">每日签到、消费、写评论赚积分，兑换好礼！</p>
@@ -212,10 +212,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  Gift,
   GoldMedal,
   List,
   Calendar,
@@ -227,8 +225,6 @@ import {
 } from '@element-plus/icons-vue'
 import { pointApi } from '@/api'
 import type { UserPoints, PointProduct, SignInResult, ExchangeResult } from '@/types'
-
-const router = useRouter()
 
 const loading = ref(false)
 const signingIn = ref(false)

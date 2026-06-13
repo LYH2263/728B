@@ -25,13 +25,14 @@ class OrderServiceTest {
     @Mock private CartMapper cartMapper;
     @Mock private UserLibraryMapper userLibraryMapper;
     @Mock private WishlistMapper wishlistMapper;
+    @Mock private PointService pointService;
 
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
         orderService = new OrderService(orderMapper, gameMapper, userMapper,
-                cartMapper, userLibraryMapper, wishlistMapper);
+                cartMapper, userLibraryMapper, wishlistMapper, pointService);
     }
 
     @Test

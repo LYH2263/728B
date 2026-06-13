@@ -6,12 +6,21 @@ WORKDIR /app
 COPY settings.xml .
 COPY pom.xml .
 
-# 预下载依赖（利用 Docker 缓存层）
-RUN mvn -s settings.xml dependency:go-offline -B
+# 预下载依赖（利用 Docker 缓存层），带网络重试以应对瞬时连接中断
+RUN mvn -s settings.xml dependency:go-offline -B \
+    -Dmaven.wagon.http.retryHandler.count=5 \
+    -Dmaven.wagon.http.connectionTimeout=120000 \
+    -Dmaven.wagon.http.readTimeout=120000 \
+    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
+    || mvn -s settings.xml dependency:go-offline -B \
+    -Dmaven.wagon.http.retryHandler.count=5
 
 # 复制源码并打包
 COPY src ./src
-RUN mvn -s settings.xml package -DskipTests
+RUN mvn -s settings.xml package -DskipTests -B \
+    -Dmaven.wagon.http.retryHandler.count=5 \
+    -Dmaven.wagon.http.connectionTimeout=120000 \
+    -Dmaven.wagon.http.readTimeout=120000
 
 # 运行阶段
 FROM eclipse-temurin:17-jre

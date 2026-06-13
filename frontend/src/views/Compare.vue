@@ -206,7 +206,6 @@ function hasAnyRequirements(): boolean {
 
 function hasAnyReqField(key: string, isRec = false): boolean {
   return games.value.some(g => {
-    const raw = isRec ? g.recRequirements : g.minRequirements
     return !!getReqValue(g, isRec ? 'rec' : 'min', key)
   })
 }

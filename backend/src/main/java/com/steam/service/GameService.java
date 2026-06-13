@@ -131,7 +131,7 @@ public class GameService {
     /**
      * 获取游戏的分类
      */
-    public List<Game> getGameCategories(Long gameId) {
+    public List<Category> getGameCategories(Long gameId) {
         return categoryMapper.findByGameId(gameId);
     }
 

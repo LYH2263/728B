@@ -43,6 +43,9 @@ public interface DeveloperFollowMapper {
     @Select("SELECT user_id FROM developer_follows WHERE developer_id = #{developerId}")
     List<Long> findFollowerUserIds(Long developerId);
 
+    @Select("SELECT COUNT(*) FROM developer_follows WHERE developer_id = #{developerId}")
+    int countFollowers(Long developerId);
+
     @Select("SELECT COUNT(*) FROM developer_follows WHERE user_id = #{userId}")
     int countByUserId(Long userId);
 }

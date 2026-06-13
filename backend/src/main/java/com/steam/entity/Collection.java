@@ -1,10 +1,12 @@
 package com.steam.entity;
 
 import lombok.Data;
+import org.apache.ibatis.type.Alias;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
+@Alias("CollectionEntity")
 public class Collection {
     private Long id;
     private Long userId;
